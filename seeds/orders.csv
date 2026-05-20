@@ -1,0 +1,6 @@
+order_id,order_date,rep_id,rep_name,rep_department,customer_id,amount,status
+1,2026-05-01,101,Alan Turing,Sales,9001,1200.00,completed
+2,2026-05-01,102,Grace Hopper,Sales,9002,450.50,completed
+3,2026-05-02,101,Alan Turing,Sales,9003,980.00,completed
+4,2026-05-03,102,Grace Hopper,Sales,9001,210.25,pending
+5,2026-05-04,101,Alan Turing,Sales,9004,75.00,cancelled

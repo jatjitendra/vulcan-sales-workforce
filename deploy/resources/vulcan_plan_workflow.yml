@@ -1,0 +1,62 @@
+# Scheduled Vulcan plan — materialize / refresh models (DataOS 2.0 vulcan:2.0 stack)
+# Pacific instance: pacific-051426 | Workspace: ct-sandbox
+
+version: v1
+name: sales-workforce-vulcan-plan-jk
+type: workflow
+tags:
+  - vulcan
+  - sales-workforce
+  - plan
+description: Run vulcan plan --auto-apply and vulcan audit for Sales & Workforce on schedule.
+owner: jitendrakumartmdcio
+layer: user
+
+workflow:
+  schedule:
+    cron: "0 6 * * *"
+    timezone: UTC
+    concurrencyPolicy: Forbid
+  dag:
+    - name: vulcan-plan-apply
+      description: Apply Vulcan plan (models + validation gate)
+      spec:
+        stack: vulcan:2.0
+        compute: runnable-default
+        stackSpec:
+          image: tmdcio/vulcan-postgres:0.228.1.14
+          command:
+            - vulcan
+            - -p
+            - /workspace
+            - --ignore-warnings
+            - plan
+            - --auto-apply
+            - --no-prompts
+          repo:
+            url: https://github.com/jatjitendra/vulcan-sales-workforce.git
+            branch: main
+            path: /
+          env:
+            PROJECT_PATH: /workspace
+            VULCAN_TENANT_ID: ct-sandbox
+
+    - name: vulcan-audit
+      description: Run blocking audits after plan
+      spec:
+        stack: vulcan:2.0
+        compute: runnable-default
+        stackSpec:
+          image: tmdcio/vulcan-postgres:0.228.1.14
+          command:
+            - vulcan
+            - -p
+            - /workspace
+            - --ignore-warnings
+            - audit
+          repo:
+            url: https://github.com/jatjitendra/vulcan-sales-workforce.git
+            branch: main
+            path: /
+          env:
+            VULCAN_TENANT_ID: ct-sandbox

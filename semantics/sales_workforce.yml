@@ -1,0 +1,20 @@
+models:
+  analytics.orders_enriched:
+    alias: orders
+
+    dimensions:
+      excludes: []
+      enhancements: []
+
+    measures:
+      order_count:
+        type: count
+        expression: "{orders.order_id}"
+
+      total_revenue:
+        type: sum
+        expression: "{orders.amount}"
+
+      avg_order_value:
+        type: avg
+        expression: "{orders.amount}"

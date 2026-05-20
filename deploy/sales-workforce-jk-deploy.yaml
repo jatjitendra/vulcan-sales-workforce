@@ -1,0 +1,69 @@
+version: v1alpha
+type: vulcan
+name: sales-workforce-jk
+description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
+tags:
+  -
+spec:
+  runAsUser: <Optional> # only add if you want to run as a specific user
+  compute: general-purpose-shared # check available computes using dataos CLI
+  engine: postgres
+  repo:
+    url: <git repo url>
+    syncFlags:
+      - '--ref=main' # change to the branch you want to deploy
+      - '--submodules=off' # change if you want to sync submodules
+    baseDir: <repo-name>/<path-to-the-project>
+    secret: ct-sandbox:<secret-name> # optional: if repo is private, create tenant secret and use it here
+  depots: # Use this if you are using depot for the type depot in config.yaml
+    - <dataos://<depot-name>?purpose=rw>
+  use: # Use this section if you are using the connection of source type without depot
+    projection:
+      secrets:
+        - id: ct-sandbox:<secret-name>
+          contextAlias: <secret-alias>
+      projections:
+        envVars:
+          - key: <PROJECT_ENV_VAR_NAME>
+            template: "{{ secrets[<secret-alias>].<SECRET_KEY> | base64_decode }}"
+
+  workflow:
+    schedule:
+      crons:
+        - '0 0 * * *'
+      endOn: '<end-date-in-ISO-8601-format>' # '2027-01-01T00:00:00-00:00'
+      timezone: '<timezone>' # 'US/Pacific'
+      concurrencyPolicy: <concurrency-policy> # Forbid, Allow
+
+    logLevel: INFO #default
+    resource: #optional
+      request:
+        cpu: "<cpu-request>" # '200m'
+        memory: "<memory-request>" # '512Mi'
+      limit:
+        cpu: "<cpu-limit>" # '1000m'
+        memory: "<memory-limit>" # '1Gi'
+
+    #NOTE: - refer document for vulcan commands - https://tmdc-io.github.io/vulcan-book/cli-command/cli/?h=commands
+    plan:
+      command:
+        - vulcan
+      arguments:
+        - plan
+        - --auto-apply
+    run:
+      command:
+        - vulcan
+      arguments:
+        - run
+
+  api:
+    replicas: 1
+    logLevel: INFO
+    resource:
+      request:
+        cpu: "<cpu-request>" # '200m'
+        memory: "<memory-request>" # '512Mi'
+      limit:
+        cpu: "<cpu-limit>" # '1000m'
+        memory: "<memory-limit>" # '1Gi'

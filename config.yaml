@@ -1,0 +1,72 @@
+
+name: "sales-workforce-jk"
+# display_name: "Human Friendly Name"
+tenant: "ct-sandbox"
+description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
+
+# Optional categorization
+tags: []  # e.g. ["marketing", "saas", "analytics"]
+terms: []  # e.g. ["glossary.data_product", "glossary.business_intelligence"]
+
+# Metadata (domain, use cases, limitations) - edit as needed
+metadata:
+  domain: "default"
+  use_cases:
+  - "Sales performance tracking"
+  - "Daily revenue reporting"
+  - "Executive KPI dashboards"
+  - "Rep productivity analytics"
+  limitations:
+  - "Uses mock seed data"
+  - "Does not currently support real-time ingestion"
+  - "Designed for local development/demo workloads"
+# Owners/users (used for approvals / notifications in some setups) - edit as needed
+users:
+  - username: "jitendrakumartmdcio"
+    github_username: "jatjitendra"
+    email: "jitendranitp24@gmail.com"
+    type: "OWNER"
+
+# notification_targets:
+#   - type: console
+#     notify_on:
+#       - apply_start
+#       - apply_end
+#       - run_start
+#       - run_end
+#       - migration_start
+#       - migration_end
+#       - apply_failure
+#       - run_failure
+#       - audit_failure
+#       - migration_failure
+#       - plan_change
+#       - check_start
+#       - check_end
+#       - check_failure
+
+# --- Gateway Connection ---
+
+# --- Gateway Connection ---
+gateways:
+  warehouse:
+    connection:
+      type: postgres
+      host: warehouse
+      port: 5432
+      database: warehouse
+      user: vulcan
+      password: vulcan
+
+    state_connection:
+      type: postgres
+      host: statestore
+      port: 5432
+      database: statestore
+      user: vulcan
+      password: vulcan
+
+default_gateway: warehouse
+
+model_defaults:
+  dialect: postgres

@@ -1,0 +1,72 @@
+# Bundle — deploy all Sales & Workforce resources
+# Apply: dataos-ctl apply -f deploy/bundle.yml -w ct-sandbox
+
+name: sales-workforce-bundle-jk
+version: v1beta
+type: bundle
+layer: user
+tags:
+  - dataos:type:resource
+  - dataos:resource:bundle
+  - dataproduct
+  - vulcan
+  - sales-workforce
+description: Bundle for Sales & Workforce Vulcan data product (API, GraphQL, plan workflow, scanner).
+owner: jitendrakumartmdcio
+
+bundle:
+  workspaces:
+    - name: ct-sandbox
+      description: Workspace for Sales & Workforce Vulcan deployment
+      layer: user
+      tags:
+        - sales-workforce
+        - vulcan
+
+  resources:
+  # --- Secrets (apply example separately first; uncomment when ready) ---
+  # - id: warehouse-secret
+  #   workspace: ct-sandbox
+  #   file: deploy/resources/instance_secret_warehouse.yml
+
+  # --- Vulcan API (REST / OpenAPI) ---
+  - id: vulcan-api
+    workspace: ct-sandbox
+    file: deploy/resources/vulcan_api_service.yml
+    # Uncomment after applying instance_secret_warehouse.yml:
+    # dependencies:
+    #   - warehouse-secret
+    # dependencyConditions:
+    #   - resourceId: warehouse-secret
+    #     status:
+    #       is:
+    #         - active
+
+  # --- GraphQL semantic API ---
+  - id: vulcan-graphql
+    workspace: ct-sandbox
+    file: deploy/resources/vulcan_graphql_service.yml
+    dependencies:
+      - vulcan-api
+    dependencyConditions:
+      - resourceId: vulcan-api
+        runtime:
+          contains:
+            - run
+
+  # --- Scheduled plan / run ---
+  - id: vulcan-plan-workflow
+    workspace: ct-sandbox
+    file: deploy/resources/vulcan_plan_workflow.yml
+    dependencies:
+      - vulcan-api
+    dependencyConditions:
+      - resourceId: vulcan-api
+        status:
+          is:
+            - active
+
+  # --- Data Product Hub scanner ---
+  - id: dp-scanner
+    workspace: ct-sandbox
+    file: deploy/scanner/dp_scanner.yml
