@@ -1,69 +1,83 @@
+# DataOS 2.0 — single-file Vulcan deploy (replaces bundle + service/workflow YAMLs)
+# Generate/regenerate: make deploy-yaml
+# Pacific: pacific-051426 | Workspace: ct-sandbox
+#
+# Apply:
+#   dataos-ctl context select --name pacific-051426
+#   dataos-ctl apply -f deploy/sales-workforce-jk-deploy.yaml -w ct-sandbox
+#
+# This one resource deploys: git sync, scheduled plan/run workflow, and Vulcan API.
+# Docs: https://tmdc-io.github.io/vulcan-book/cli-command/cli/
+#
+# Depot = registered cloud warehouse (dataos://warehouse?purpose=rw).
+# Confirm depot name with admin if different from "warehouse".
+
 version: v1alpha
 type: vulcan
 name: sales-workforce-jk
 description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
+owner: jitendrakumartmdcio
+layer: user
 tags:
-  -
+  - dataproduct
+  - sales-workforce
+  - vulcan
+
 spec:
-  runAsUser: <Optional> # only add if you want to run as a specific user
-  compute: general-purpose-shared # check available computes using dataos CLI
+  runAsUser: jitendrakumartmdcio
+  compute: runnable-default
   engine: postgres
+
   repo:
-    url: <git repo url>
+    url: https://github.com/jatjitendra/vulcan-sales-workforce.git
     syncFlags:
-      - '--ref=main' # change to the branch you want to deploy
-      - '--submodules=off' # change if you want to sync submodules
-    baseDir: <repo-name>/<path-to-the-project>
-    secret: ct-sandbox:<secret-name> # optional: if repo is private, create tenant secret and use it here
-  depots: # Use this if you are using depot for the type depot in config.yaml
-    - <dataos://<depot-name>?purpose=rw>
-  use: # Use this section if you are using the connection of source type without depot
-    projection:
-      secrets:
-        - id: ct-sandbox:<secret-name>
-          contextAlias: <secret-alias>
-      projections:
-        envVars:
-          - key: <PROJECT_ENV_VAR_NAME>
-            template: "{{ secrets[<secret-alias>].<SECRET_KEY> | base64_decode }}"
+      - '--ref=main'
+      - '--submodules=off'
+    baseDir: .
+    # secret: ct-sandbox:github-token  # uncomment if private repo
+
+  depots:
+    - dataos://warehouse?purpose=rw
 
   workflow:
     schedule:
       crons:
-        - '0 0 * * *'
-      endOn: '<end-date-in-ISO-8601-format>' # '2027-01-01T00:00:00-00:00'
-      timezone: '<timezone>' # 'US/Pacific'
-      concurrencyPolicy: <concurrency-policy> # Forbid, Allow
+        - '0 6 * * *'
+      endOn: '2027-01-01T00:00:00+00:00'
+      timezone: UTC
+      concurrencyPolicy: Forbid
 
-    logLevel: INFO #default
-    resource: #optional
+    logLevel: INFO
+    resource:
       request:
-        cpu: "<cpu-request>" # '200m'
-        memory: "<memory-request>" # '512Mi'
+        cpu: "500m"
+        memory: "1Gi"
       limit:
-        cpu: "<cpu-limit>" # '1000m'
-        memory: "<memory-limit>" # '1Gi'
+        cpu: "2000m"
+        memory: "4Gi"
 
-    #NOTE: - refer document for vulcan commands - https://tmdc-io.github.io/vulcan-book/cli-command/cli/?h=commands
     plan:
       command:
         - vulcan
       arguments:
         - plan
         - --auto-apply
+        - --no-prompts
+        - --ignore-warnings
     run:
       command:
         - vulcan
       arguments:
         - run
+        - --ignore-warnings
 
   api:
     replicas: 1
     logLevel: INFO
     resource:
       request:
-        cpu: "<cpu-request>" # '200m'
-        memory: "<memory-request>" # '512Mi'
+        cpu: "500m"
+        memory: "1Gi"
       limit:
-        cpu: "<cpu-limit>" # '1000m'
-        memory: "<memory-limit>" # '1Gi'
+        cpu: "2000m"
+        memory: "4Gi"

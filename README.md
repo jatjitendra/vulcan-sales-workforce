@@ -65,20 +65,18 @@ Curated marts:
 
 ## Deploy to DataOS Cloud (Pacific)
 
-1. CLI: `dataos-ctl context select --name pacific-051426` then `dataos-ctl login`
-2. Local validate: `make reset-state && make up` then plan + audit
-3. Cloud: see **`deploy/DEPLOY.md`**
+Single-file Vulcan deploy (no bundle). See **`deploy/DEPLOY.md`**.
+
+1. Local validate: `make up` → plan → audit
+2. Push to GitHub: `git push -u origin main`
+3. Generate/update YAML: `make deploy-yaml`
+4. Apply:
 
 ```bash
-dataos-ctl apply -f deploy/bundle.yml -w ct-sandbox
-dataos-ctl product apply -f deploy/data_product_spec.yml
-dataos-ctl apply -f deploy/scanner/dp_scanner.yml -w ct-sandbox
+dataos-ctl context select --name pacific-051426
+dataos-ctl login
+dataos-ctl apply -f deploy/sales-workforce-jk-deploy.yaml -w ct-sandbox
 ```
 
-Key files:
-
-- `config.yaml` — `tenant: ct-sandbox`
-- `deploy/data_product_spec.yml`
-- `deploy/bundle.yml`
-- `deploy/scanner/dp_scanner.yml`
+Key file: **`deploy/sales-workforce-jk-deploy.yaml`** (`type: vulcan`)
 
