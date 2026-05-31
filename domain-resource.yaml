@@ -2,12 +2,11 @@
 # Guide: https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/
 # Instance: pacific-051426 | Workspace / tenant: ct-sandbox
 #
-# Apply (Step 4):
-#   dataos-ctl context select --name pacific-051426
+# Apply (Step 4) — CLI v3 (no -w flag; use tenant select -n ct-sandbox):
+#   export PATH="$HOME/.dataos/v2/bin:$PATH"
+#   dataos-ctl tenant select -n ct-sandbox
 #   dataos-ctl login
-#   dataos-ctl resource apply -f domain-resource.yaml -w ct-sandbox
-#
-# Requires dataos-ctl with type:vulcan support (CLI 2.27.8 reports unknown type).
+#   dataos-ctl resource apply -f domain-resource.yaml
 
 version: v1alpha
 type: vulcan
@@ -33,8 +32,8 @@ spec:
       - "--ref=main"
       - "--submodules=off"
     baseDir: .
-    # Uncomment if private repo (create workspace secret first):
-    # secret: ct-sandbox:github-token
+    # Required on Pacific (same as practice-insights) — apply git_sync_secret.yml first
+    secret: ct-sandbox:github-token
 
   depots:
     - dataos://s3lhdepot?purpose=rw
@@ -63,11 +62,15 @@ spec:
       command:
         - vulcan
       arguments:
+        - -p
+        - .
         - migrate
     plan:
       command:
         - vulcan
       arguments:
+        - -p
+        - .
         - --log-to-stdout
         - plan
         - --auto-apply
@@ -75,6 +78,8 @@ spec:
       command:
         - vulcan
       arguments:
+        - -p
+        - .
         - --log-to-stdout
         - run
 
