@@ -4,6 +4,8 @@ Official guide: [Deployment Steps](https://tmdc-io.github.io/vulcan-book/guides/
 
 Pacific: **pacific-051426** · Workspace: **ct-sandbox** · Product: **sales-workforce-jk**
 
+The guide uses `ds` — same CLI as **`dataos-ctl`**. Use **`dataos-ctl resource`** subcommands (matches the guide's `ds resource ...`).
+
 ## Two required files (guide)
 
 | File | Purpose |
@@ -38,7 +40,7 @@ git push origin main
 ```bash
 cp deploy/resources/git_sync_secret.yml.example deploy/resources/git_sync_secret.yml
 # edit credentials
-dataos-ctl apply -f deploy/resources/git_sync_secret.yml -w ct-sandbox
+dataos-ctl resource apply -f deploy/resources/git_sync_secret.yml -w ct-sandbox
 ```
 
 Uncomment in `domain-resource.yaml`:
@@ -53,8 +55,11 @@ secret: ct-sandbox:github-token
 
 ```bash
 dataos-ctl context select --name pacific-051426
-dataos-ctl get -t depot -w ct-sandbox
-dataos-ctl get -t compute -w ct-sandbox -n ct-sandbox-compute
+dataos-ctl login
+
+dataos-ctl resource get -t depot -n s3lhdepot -a -w ct-sandbox
+dataos-ctl resource get -t compute -n ct-sandbox-compute -a -w ct-sandbox
+dataos-ctl resource get -t stack -a -w ct-sandbox
 ```
 
 (403? Ask admin for read access.)
@@ -66,7 +71,7 @@ dataos-ctl get -t compute -w ct-sandbox -n ct-sandbox-compute
 ```bash
 dataos-ctl context select --name pacific-051426
 dataos-ctl login
-dataos-ctl apply -f domain-resource.yaml -w ct-sandbox
+dataos-ctl resource apply -f domain-resource.yaml -w ct-sandbox
 ```
 
 Or:
@@ -92,13 +97,25 @@ Your **dataos-ctl** is too old (e.g. 2.27.8). Ask admin for a CLI that supports 
 
 **UI:** Runtime tab → **plan**, **run**, **api** pods.
 
-**CLI:**
+**CLI status:**
 
 ```bash
-dataos-ctl get -t vulcan -w ct-sandbox -n sales-workforce-jk
-dataos-ctl resource -t Vulcan -n sales-workforce-jk logs \
-  --container-group sales-workforce-jk-run-execute -c main
+dataos-ctl resource get -t vulcan -n sales-workforce-jk -w ct-sandbox
 ```
+
+**Logs (per deployment guide):**
+
+```bash
+# Plan / migration
+dataos-ctl resource log -t Vulcan -n sales-workforce-jk \
+  -w ct-sandbox -c main
+
+# Model run (Spark driver)
+dataos-ctl resource log -t Vulcan -n sales-workforce-jk \
+  -w ct-sandbox -c main -r
+```
+
+Runtime container groups in UI: `sales-workforce-jk-plan-execute`, `sales-workforce-jk-run-execute`, `sales-workforce-jk-api`.
 
 **API:**
 
@@ -106,6 +123,18 @@ dataos-ctl resource -t Vulcan -n sales-workforce-jk logs \
 curl -s "https://pacific-051426.dataos.cloud/ct-sandbox/vulcan/sales-workforce-jk/livez" \
   -H "Authorization: Bearer <token>"
 ```
+
+---
+
+## Command reference (guide → your CLI)
+
+| Guide | Your command |
+|-------|--------------|
+| `ds resource apply -f domain-resource.yaml` | `dataos-ctl resource apply -f domain-resource.yaml -w ct-sandbox` |
+| `ds resource -t depot get -n s3lhdepot -a` | `dataos-ctl resource get -t depot -n s3lhdepot -a -w ct-sandbox` |
+| `ds resource -t vulcan -n sales-workforce-jk get` | `dataos-ctl resource get -t vulcan -n sales-workforce-jk -w ct-sandbox` |
+
+Note: `dataos-ctl apply` and `dataos-ctl resource apply` are equivalent; prefer **`resource`** to match the guide.
 
 ---
 

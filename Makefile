@@ -106,7 +106,7 @@ local-check: ## Local validate: info → plan → audit (needs: make local-infra
 	@DATAOS_TENANT_ID=$${DATAOS_TENANT_ID:-ct-sandbox} VULCAN_TENANT_ID=$${VULCAN_TENANT_ID:-ct-sandbox} \
 		$(MAKE) vulcan-cli CMD="audit"
 
-deploy-apply: ## Pacific Step 4: dataos-ctl apply domain-resource.yaml
+deploy-apply: ## Pacific Step 4: dataos-ctl resource apply domain-resource.yaml
 	./deploy/scripts/deploy.sh
 
 reset-state: ## Clear stale Vulcan state/cache (fixes duplicate model errors)

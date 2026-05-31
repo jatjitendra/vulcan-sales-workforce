@@ -21,12 +21,12 @@ dataos-ctl context select --name "$CONTEXT"
 
 if [[ -f "$ROOT/deploy/resources/git_sync_secret.yml" ]]; then
   echo "Applying git sync secret..."
-  dataos-ctl apply -f "$ROOT/deploy/resources/git_sync_secret.yml" -w "$WORKSPACE"
+  dataos-ctl resource apply -f "$ROOT/deploy/resources/git_sync_secret.yml" -w "$WORKSPACE"
 fi
 
 echo "Applying Vulcan resource (Step 4)..."
-dataos-ctl apply -f "$MANIFEST" -w "$WORKSPACE"
+dataos-ctl resource apply -f "$MANIFEST" -w "$WORKSPACE"
 
 echo "Done. Verify (Step 5):"
-dataos-ctl get -t vulcan -w "$WORKSPACE" -n sales-workforce-jk 2>/dev/null || \
+dataos-ctl resource get -t vulcan -w "$WORKSPACE" -n sales-workforce-jk 2>/dev/null || \
   echo "  (403? ask admin or check Pacific UI Runtime tab for plan/run/api)"

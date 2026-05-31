@@ -16,8 +16,12 @@ Follow [Vulcan Deployment Steps](https://tmdc-io.github.io/vulcan-book/guides/de
 
 ```bash
 cd ~/Downloads/Vulcan
-make deploy-apply
+dataos-ctl context select --name pacific-051426
+dataos-ctl login
+dataos-ctl resource apply -f domain-resource.yaml -w ct-sandbox
 ```
+
+Or: `make deploy-apply`
 
 ## Generate deploy stub
 

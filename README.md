@@ -29,7 +29,7 @@ make local-check
 git push origin main
 dataos-ctl context select --name pacific-051426
 dataos-ctl login
-dataos-ctl apply -f domain-resource.yaml -w ct-sandbox
+dataos-ctl resource apply -f domain-resource.yaml -w ct-sandbox
 ```
 
 Or: `make deploy-apply`
