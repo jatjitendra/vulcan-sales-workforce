@@ -6,7 +6,7 @@
 # Or paste the alias from:               make print-alias
 # (CLI/API containers use host.docker.internal:5431 for Postgres; see VULCAN_STATESTORE_* below.)
 #
-# Share without the monorepo: copy this folder (Makefile, config.yaml,
+# Share without the monorepo: copy this folder (Makefile, config.local.yaml,
 # models/, semantics/, docker/*.yml). Pull images from your registry.
 #
 # VULCAN_IMAGE ?= tmdcio/vulcan-postgres:0.228.1.14
@@ -24,7 +24,8 @@ VULCAN_CLI_FLAGS ?= --ignore-warnings
 VULCAN_CONFIG_FILE ?= config.local.yaml
 
 .PHONY: help up down network certs infra warehouse warehouse-down transpiler transpiler-down setup \
-	vulcan-cli fetchdf show-model deploy-yaml vulcan-api-docker vulcan-api-pip print-alias reset-state ensure-infra \
+	vulcan-cli fetchdf show-model deploy-yaml deploy-apply local-infra local-check \
+	vulcan-api-docker vulcan-api-pip print-alias reset-state ensure-infra \
 	vulcan-up vulcan-down proxy-up proxy-down infra-down all-down all-clean
 
 DOCKER_COMPOSE = docker compose
@@ -86,12 +87,27 @@ endif
 	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
 	$(VULCAN_DOCKER_COMMON) vulcan -p . $(VULCAN_CLI_FLAGS) evaluate $(MODEL) --limit $(or $(LIMIT),10)
 
-deploy-yaml: ensure-infra ## Generate deploy YAML from cloud config.yaml (re-apply spark fields after)
+deploy-yaml: ensure-infra ## Generate starter domain-resource.yaml via vulcan create_deploy_yaml
 	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
-	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/sales-workforce-jk-deploy.yaml --overwrite' VULCAN_CONFIG_FILE=config.yaml
-	@cp .cache/sales-workforce-jk-deploy.yaml deploy/sales-workforce-jk-deploy.generated.yaml
-	@echo "Generated: deploy/sales-workforce-jk-deploy.generated.yaml"
-	@echo "Keep deploy/sales-workforce-jk-deploy.yaml (practice-insights settings) unless you merge manually."
+	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/domain-resource.generated.yaml --overwrite' VULCAN_CONFIG_FILE=config.yaml
+	@echo "Generated: .cache/domain-resource.generated.yaml"
+	@echo "Merge Spark/driver/executor fields into domain-resource.yaml if needed."
+
+local-infra: network ## Start statestore + warehouse only (skip MinIO/transpiler if they fail)
+	docker compose -p vulcan-statestore -f docker/docker-compose.infra.yml up -d statestore
+	$(MAKE) warehouse
+
+local-check: ## Local validate: info → plan → audit (needs: make local-infra)
+	@$(MAKE) reset-state
+	@DATAOS_TENANT_ID=$${DATAOS_TENANT_ID:-ct-sandbox} VULCAN_TENANT_ID=$${VULCAN_TENANT_ID:-ct-sandbox} \
+		$(MAKE) vulcan-cli CMD="info"
+	@DATAOS_TENANT_ID=$${DATAOS_TENANT_ID:-ct-sandbox} VULCAN_TENANT_ID=$${VULCAN_TENANT_ID:-ct-sandbox} \
+		$(MAKE) vulcan-cli CMD="plan --auto-apply --no-prompts"
+	@DATAOS_TENANT_ID=$${DATAOS_TENANT_ID:-ct-sandbox} VULCAN_TENANT_ID=$${VULCAN_TENANT_ID:-ct-sandbox} \
+		$(MAKE) vulcan-cli CMD="audit"
+
+deploy-apply: ## Pacific Step 4: dataos-ctl apply domain-resource.yaml
+	./deploy/scripts/deploy.sh
 
 reset-state: ## Clear stale Vulcan state/cache (fixes duplicate model errors)
 	docker run --rm -v "$$(pwd):/workspace" alpine sh -c 'rm -rf /workspace/.cache /workspace/.state /workspace/.logs && mkdir -p /workspace/.cache /workspace/.logs && chmod -R 777 /workspace/.cache /workspace/.logs'

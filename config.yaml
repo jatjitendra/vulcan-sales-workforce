@@ -1,9 +1,9 @@
-# Cloud config — Spark + s3lhdepot on Pacific (ct-sandbox)
-# Also set DATAOS_TENANT_ID=ct-sandbox in environment for CLI/runtime.
-# Local Postgres dev: use config.local.yaml via `make vulcan-cli` (see Makefile)
+# Cloud Vulcan config — Pacific / ct-sandbox (Spark + s3lhdepot depot)
+# Guide: https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/
+# Set tenant via environment: export DATAOS_TENANT_ID=ct-sandbox
+# Local Postgres dev uses config.local.yaml (see Makefile).
 
 name: sales-workforce-jk
-tenant: ct-sandbox
 display_name: Sales & Workforce
 description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
 
@@ -11,7 +11,6 @@ discoverable: true
 version: 0.1.0
 alignment: consumer_aligned
 
-# Required for Spark gateways (VDE not supported on spark)
 vde: false
 
 tags:
@@ -52,12 +51,12 @@ notification_targets:
       - check_failure
 
 gateways:
-  s3lhdepot:
+  default:
     connection:
       type: depot
       address: dataos://s3lhdepot
 
-default_gateway: s3lhdepot
+default_gateway: default
 
 model_defaults:
   dialect: spark

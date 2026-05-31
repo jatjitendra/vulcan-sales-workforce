@@ -1,28 +1,27 @@
-# Deploy: Sales & Workforce (DataOS 2.0 / Vulcan)
+# Deploy — Sales & Workforce
 
-Single-file **`type: vulcan`** deploy — same Pacific settings as **practice-insights**.
+Follow [Vulcan Deployment Steps](https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/).
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `sales-workforce-jk-deploy.yaml` | DataOS apply manifest (Spark + s3lhdepot) |
-| `DEPLOY.md` | Step-by-step deploy guide |
+| `../domain-resource.yaml` | DataOS apply manifest (`type: vulcan`) |
+| `../config.yaml` | Cloud Vulcan config (in repo root) |
+| `DEPLOY.md` | Step-by-step Pacific deploy |
 | `scripts/deploy.sh` | Apply helper |
-| `resources/git_sync_secret.yml.example` | Git credentials (private repo only) |
-| `resources/instance_secret_warehouse.yml.example` | Notes — s3lhdepot is platform-managed |
+| `resources/git_sync_secret.yml.example` | Git credentials (private repo) |
 
 ## Quick apply
 
 ```bash
-dataos-ctl context select --name pacific-051426
-dataos-ctl apply -f deploy/sales-workforce-jk-deploy.yaml -w ct-sandbox
+cd ~/Downloads/Vulcan
+make deploy-apply
 ```
 
-## Regenerate deploy stub (optional)
+## Generate deploy stub
 
 ```bash
 make deploy-yaml
+# merges into domain-resource.yaml manually if needed
 ```
-
-Writes `deploy/sales-workforce-jk-deploy.generated.yaml`. Merge spark/driver/executor fields into the main deploy file if needed.

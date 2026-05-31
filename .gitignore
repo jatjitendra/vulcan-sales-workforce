@@ -1,5 +1,7 @@
 .cache/
 .state/
+.logs/
 .env
 *.db
 logs/
+deploy/resources/git_sync_secret.yml

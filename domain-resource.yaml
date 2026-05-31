@@ -1,9 +1,13 @@
-# DataOS 2.0 — Vulcan deploy (aligned with practice-insights on Pacific)
-# Pacific: pacific-051426 | Workspace / tenant: ct-sandbox
+# DataOS Vulcan resource — Pacific deploy manifest
+# Guide: https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/
+# Instance: pacific-051426 | Workspace / tenant: ct-sandbox
 #
-# Apply:
+# Apply (Step 4):
 #   dataos-ctl context select --name pacific-051426
-#   dataos-ctl apply -f deploy/sales-workforce-jk-deploy.yaml -w ct-sandbox
+#   dataos-ctl login
+#   dataos-ctl apply -f domain-resource.yaml -w ct-sandbox
+#
+# Requires dataos-ctl with type:vulcan support (CLI 2.27.8 reports unknown type).
 
 version: v1alpha
 type: vulcan

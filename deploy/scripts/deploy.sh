@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# Deploy Sales & Workforce Vulcan resource to Pacific (Spark + s3lhdepot).
+# Deploy per Vulcan book: https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/
 set -euo pipefail
 
 WORKSPACE="${WORKSPACE:-ct-sandbox}"
 CONTEXT="${DATAOS_CONTEXT:-pacific-051426}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-DEPLOY_YAML="$ROOT/deploy/sales-workforce-jk-deploy.yaml"
+MANIFEST="$ROOT/domain-resource.yaml"
 
 echo "Deploying from: $ROOT"
 echo "Context: $CONTEXT"
 echo "Workspace: $WORKSPACE"
-echo "Manifest: $DEPLOY_YAML"
-echo "Config (cloud): config.yaml → s3lhdepot / spark"
+echo "Manifest: $MANIFEST"
+
+if [[ ! -f "$MANIFEST" ]]; then
+  echo "ERROR: missing $MANIFEST"
+  exit 1
+fi
 
 dataos-ctl context select --name "$CONTEXT"
 
@@ -20,8 +24,9 @@ if [[ -f "$ROOT/deploy/resources/git_sync_secret.yml" ]]; then
   dataos-ctl apply -f "$ROOT/deploy/resources/git_sync_secret.yml" -w "$WORKSPACE"
 fi
 
-echo "Applying Vulcan resource..."
-dataos-ctl apply -f "$DEPLOY_YAML" -w "$WORKSPACE"
+echo "Applying Vulcan resource (Step 4)..."
+dataos-ctl apply -f "$MANIFEST" -w "$WORKSPACE"
 
-echo "Done. Verify (may need admin if 403):"
-dataos-ctl get -t vulcan -w "$WORKSPACE" -n sales-workforce-jk 2>/dev/null || true
+echo "Done. Verify (Step 5):"
+dataos-ctl get -t vulcan -w "$WORKSPACE" -n sales-workforce-jk 2>/dev/null || \
+  echo "  (403? ask admin or check Pacific UI Runtime tab for plan/run/api)"

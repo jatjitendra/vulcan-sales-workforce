@@ -1,51 +1,40 @@
-# Vulcan (DataOS 2.0) — Mock Employee + Sales Data Product
+# Vulcan (DataOS 2.0) — Sales & Workforce Data Product
 
-Pacific target: **instance** `pacific-051426` · **workspace/tenant** `ct-sandbox` · **role** `data-developer`
+Pacific: **pacific-051426** · Workspace/tenant: **ct-sandbox**
 
-Cloud engine: **Spark + Iceberg** on **`s3lhdepot`** (same as practice-insights).
+Deploy guide: [Vulcan Deployment Steps](https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/) · local steps in **`deploy/DEPLOY.md`**
 
 ## Project layout
 
 | Path | Purpose |
 |------|---------|
 | `config.yaml` | **Cloud** — depot gateway `dataos://s3lhdepot`, dialect `spark` |
-| `config.local.yaml` | **Local Docker** — Postgres warehouse + statestore |
-| `seeds/` | Mock CSV inputs (employees, orders) |
-| `models/raw/` | Seed → raw tables |
-| `models/analytics/` | Curated marts |
-| `checks/` | Non-blocking monitoring |
-| `semantics/` | Metrics API (order_count, total_revenue, avg_order_value) |
-| `deploy/sales-workforce-jk-deploy.yaml` | Pacific apply manifest |
+| `config.local.yaml` | **Local** — Postgres Docker |
+| `domain-resource.yaml` | **Pacific apply** — `type: vulcan` manifest |
+| `models/`, `seeds/`, `semantics/`, `checks/` | Data product |
 
-## Local run (Postgres Docker)
-
-Uses `config.local.yaml` automatically:
+## Local check (Postgres)
 
 ```bash
 cp env.example .env
+export DATAOS_TENANT_ID=ct-sandbox
 export VULCAN_TENANT_ID=ct-sandbox
-make up
-make vulcan-cli CMD="plan --auto-apply --no-prompts"
-make vulcan-cli CMD="audit"
+make local-infra
+make local-check
 ```
 
-| Service | URL |
-|---------|-----|
-| Vulcan API | http://localhost:18000/redoc |
-| GraphQL | http://localhost:13000 |
-
-## Deploy to Pacific (Spark + s3lhdepot)
-
-See **`deploy/DEPLOY.md`**.
+## Deploy to Pacific
 
 ```bash
-git push -u origin main
+git push origin main
 dataos-ctl context select --name pacific-051426
 dataos-ctl login
-dataos-ctl apply -f deploy/sales-workforce-jk-deploy.yaml -w ct-sandbox
+dataos-ctl apply -f domain-resource.yaml -w ct-sandbox
 ```
 
-## Data product models
+Or: `make deploy-apply`
+
+## Models
 
 | Model | Grain |
 |-------|-------|
@@ -53,12 +42,3 @@ dataos-ctl apply -f deploy/sales-workforce-jk-deploy.yaml -w ct-sandbox
 | `raw.orders` | `order_id` |
 | `analytics.orders_enriched` | `order_id` |
 | `analytics.sales_by_rep_daily` | `(order_date, employee_id)` |
-
-## Config summary
-
-| Environment | Config file | Gateway | Dialect |
-|-------------|-------------|---------|---------|
-| Local Docker | `config.local.yaml` | Postgres `warehouse` | `postgres` |
-| Pacific cloud | `config.yaml` | Depot `s3lhdepot` | `spark` |
-
-Tenant is **`ct-sandbox`** in `config.yaml` / `config.local.yaml` and via **`DATAOS_TENANT_ID=ct-sandbox`** in the environment.
