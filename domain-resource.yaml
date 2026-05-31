@@ -17,6 +17,7 @@ tags:
   - spark
   - iceberg
   - lakehouse
+  - retry-plan-1
 description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
 owner: jitendrakumartmdcio
 tenant: ct-sandbox
