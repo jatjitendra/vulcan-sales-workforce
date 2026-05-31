@@ -1,6 +1,6 @@
-# Deploy to DataOS Pacific (Vulcan single-file)
+# Deploy to DataOS Pacific (Spark + s3lhdepot)
 
-DataOS 2.0 deploys this product with **one Vulcan resource YAML** — no bundle, separate services, data product spec, or scanner.
+Same Pacific settings as **practice-insights**: `ct-sandbox-compute`, `engine: spark`, `dataos://s3lhdepot`.
 
 ## Environment
 
@@ -9,10 +9,14 @@ DataOS 2.0 deploys this product with **one Vulcan resource YAML** — no bundle,
 | Instance | `pacific-051426` |
 | URL | `https://pacific-051426.dataos.cloud` |
 | Workspace | `ct-sandbox` |
+| Tenant | `ct-sandbox` (`DATAOS_TENANT_ID`) |
 | Deploy file | `deploy/sales-workforce-jk-deploy.yaml` |
-| Resource | `type: vulcan`, name `sales-workforce-jk` |
+| Project config | `config.yaml` (depot gateway → `s3lhdepot`) |
+| Local dev config | `config.local.yaml` (Postgres Docker) |
 
-## Phase 1 — Validate locally
+## Phase 1 — Validate locally (Postgres Docker)
+
+Local stack uses **`config.local.yaml`** automatically via Makefile:
 
 ```bash
 cd ~/Downloads/Vulcan
@@ -24,31 +28,25 @@ make vulcan-cli CMD="audit"
 
 ## Phase 2 — Push code to GitHub
 
-Cloud Vulcan pulls from Git. Repo must exist and be pushed before apply:
+Cloud Vulcan pulls **`config.yaml`** (Spark + depot) from Git:
 
 ```bash
+git add config.yaml deploy/sales-workforce-jk-deploy.yaml
+git commit -m "Configure Spark/s3lhdepot cloud deploy"
 git push -u origin main
 ```
 
-## Phase 3 — Generate deploy YAML (if models/config changed)
+## Phase 3 — Optional git secret (private repo only)
 
 ```bash
-make deploy-yaml
+cp deploy/resources/git_sync_secret.yml.example deploy/resources/git_sync_secret.yml
+# fill credentials, then:
+dataos-ctl apply -f deploy/resources/git_sync_secret.yml -w ct-sandbox
 ```
 
-Edits repo URL, depot, compute in `deploy/sales-workforce-jk-deploy.yaml` if needed.
+Uncomment `secret:` in `deploy/sales-workforce-jk-deploy.yaml`.
 
-## Phase 4 — Optional warehouse secret
-
-If cloud depot needs credentials:
-
-```bash
-cp deploy/resources/instance_secret_warehouse.yml.example deploy/resources/instance_secret_warehouse.yml
-# fill values, then:
-dataos-ctl apply -f deploy/resources/instance_secret_warehouse.yml -w ct-sandbox
-```
-
-## Phase 5 — Deploy (single apply)
+## Phase 4 — Deploy to Pacific
 
 ```bash
 dataos-ctl context select --name pacific-051426
@@ -62,31 +60,48 @@ Or:
 ./deploy/scripts/deploy.sh
 ```
 
-## Phase 6 — Verify
+## Phase 5 — Verify
+
+Ask admin to run (if you get 403):
 
 ```bash
-dataos-ctl get -t vulcan -w ct-sandbox
-dataos-ctl get -t workflow -w ct-sandbox -r
-dataos-ctl get -t service -w ct-sandbox
+dataos-ctl get -t vulcan -w ct-sandbox -n sales-workforce-jk
 ```
 
-Use ingress/API URL from your admin or `dataos-ctl get` output for the Vulcan API.
+Check runtime logs in DataOS UI: **plan**, **run**, **api** entries.
 
-## What this deploy file includes
+API health (replace token):
 
-| Component | In `spec` section |
-|-----------|-------------------|
-| Git repo sync | `repo` |
-| Warehouse access | `depots` |
-| Scheduled `vulcan plan` + `vulcan run` | `workflow` |
-| Vulcan REST API | `api` |
+```bash
+curl -s "https://pacific-051426.dataos.cloud/ct-sandbox/vulcan/sales-workforce-jk/livez" \
+  -H "Authorization: Bearer <token>"
+```
 
-Semantics and GraphQL are served through the Vulcan runtime (local: http://localhost:18000/redoc).
+## What gets deployed
+
+| Component | Setting |
+|-----------|---------|
+| Git sync | `vulcan-sales-workforce` @ `main` |
+| Depot | `dataos://s3lhdepot?purpose=rw` |
+| Compute | `ct-sandbox-compute` |
+| Engine | Spark (driver + 2 executors) |
+| Workflow | daily 06:00 UTC: `migrate` → `plan` → `run` |
+| API | REST + GraphQL + MySQL wire |
+
+## Config files
+
+| File | Used by |
+|------|---------|
+| `config.yaml` | **Cloud** — `gateways.s3lhdepot.connection.type: depot` |
+| `config.local.yaml` | **Local Docker** — Postgres warehouse |
+| `deploy/sales-workforce-jk-deploy.yaml` | **dataos-ctl apply** |
 
 ## Troubleshooting
 
 | Error | Action |
 |-------|--------|
-| `unknown type 'vulcan'` | Ask admin to enable Vulcan resource type on Pacific |
-| `403 Forbidden` | Ask admin for apply rights on `ct-sandbox` |
-| Depot errors | Confirm depot name (`warehouse`) with admin |
+| `403 Forbidden` on get/apply | Ask admin for `get`/`apply` on `vulcan` in `ct-sandbox` |
+| Depot errors | Confirm `s3lhdepot` exists: `dataos-ctl get -t depot -w ct-sandbox` |
+| Git sync failed | Add git secret; uncomment `secret:` in deploy YAML |
+| Spark OOM / shuffle errors | Check Spark UI + increase executor memory in deploy YAML |
+| Local vs cloud mismatch | Local uses `config.local.yaml`; cloud uses `config.yaml` |

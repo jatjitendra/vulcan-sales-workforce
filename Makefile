@@ -17,9 +17,11 @@ VULCAN_DOCKER_EXTRA_HOSTS ?=
 VULCAN_STATESTORE_HOST ?= statestore
 VULCAN_STATESTORE_PORT ?= 5432
 
-# Same as config.yaml (b2b_saas): transpiler + graphql by Docker DNS on network vulcan.
+# Same as config.local.yaml: transpiler + graphql by Docker DNS on network vulcan.
 # Use `-i` (not `-t`) so this works in non-interactive CI/agents.
 VULCAN_CLI_FLAGS ?= --ignore-warnings
+# Local CLI uses Postgres config; cloud deploy uses config.yaml (Spark + s3lhdepot).
+VULCAN_CONFIG_FILE ?= config.local.yaml
 
 .PHONY: help up down network certs infra warehouse warehouse-down transpiler transpiler-down setup \
 	vulcan-cli fetchdf show-model deploy-yaml vulcan-api-docker vulcan-api-pip print-alias reset-state ensure-infra \
@@ -39,11 +41,13 @@ print-alias: ## Print a shell alias (copy into ~/.zshrc); statestore via host:54
 VULCAN_DOCKER_COMMON = docker run -i --rm --network=vulcan \
 	$(VULCAN_DOCKER_EXTRA_HOSTS) \
 	-v "$$(pwd):/workspace" -w /workspace \
+	-v "$$(pwd)/$(VULCAN_CONFIG_FILE):/workspace/config.yaml:ro" \
 	-e STATESTORE_HOST=$(VULCAN_STATESTORE_HOST) \
 	-e STATESTORE_PORT=$(VULCAN_STATESTORE_PORT) \
 	-e MINIO_ENDPOINT=http://minio:9000 \
 	-e VULCAN__TRANSPILER__BASE_URL=http://vulcan-transpiler-api:8100 \
 	-e VULCAN__GRAPHQL__BASE_URL=http://vulcan-graphql:3000 \
+	-e DATAOS_TENANT_ID=$${DATAOS_TENANT_ID:-ct-sandbox} \
 	-e VULCAN_TENANT_ID=$${VULCAN_TENANT_ID:-ct-sandbox} \
 	$(VULCAN_IMAGE)
 
@@ -82,12 +86,12 @@ endif
 	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
 	$(VULCAN_DOCKER_COMMON) vulcan -p . $(VULCAN_CLI_FLAGS) evaluate $(MODEL) --limit $(or $(LIMIT),10)
 
-deploy-yaml: ensure-infra ## Generate DataOS vulcan deploy YAML via create_deploy_yaml
+deploy-yaml: ensure-infra ## Generate deploy YAML from cloud config.yaml (re-apply spark fields after)
 	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
-	$(VULCAN_DOCKER_COMMON) vulcan -p . $(VULCAN_CLI_FLAGS) create_deploy_yaml \
-		-o .cache/sales-workforce-jk-deploy.yaml --overwrite
-	@cp .cache/sales-workforce-jk-deploy.yaml deploy/sales-workforce-jk-deploy.yaml
-	@echo "Generated: deploy/sales-workforce-jk-deploy.yaml"
+	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/sales-workforce-jk-deploy.yaml --overwrite' VULCAN_CONFIG_FILE=config.yaml
+	@cp .cache/sales-workforce-jk-deploy.yaml deploy/sales-workforce-jk-deploy.generated.yaml
+	@echo "Generated: deploy/sales-workforce-jk-deploy.generated.yaml"
+	@echo "Keep deploy/sales-workforce-jk-deploy.yaml (practice-insights settings) unless you merge manually."
 
 reset-state: ## Clear stale Vulcan state/cache (fixes duplicate model errors)
 	docker run --rm -v "$$(pwd):/workspace" alpine sh -c 'rm -rf /workspace/.cache /workspace/.state /workspace/.logs && mkdir -p /workspace/.cache /workspace/.logs && chmod -R 777 /workspace/.cache /workspace/.logs'

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy Sales & Workforce via single Vulcan resource (DataOS 2.0).
+# Deploy Sales & Workforce Vulcan resource to Pacific (Spark + s3lhdepot).
 set -euo pipefail
 
 WORKSPACE="${WORKSPACE:-ct-sandbox}"
@@ -11,18 +11,17 @@ echo "Deploying from: $ROOT"
 echo "Context: $CONTEXT"
 echo "Workspace: $WORKSPACE"
 echo "Manifest: $DEPLOY_YAML"
+echo "Config (cloud): config.yaml → s3lhdepot / spark"
 
 dataos-ctl context select --name "$CONTEXT"
 
-if [[ -f "$ROOT/deploy/resources/instance_secret_warehouse.yml" ]]; then
-  echo "Applying warehouse secret..."
-  dataos-ctl apply -f "$ROOT/deploy/resources/instance_secret_warehouse.yml" -w "$WORKSPACE"
-else
-  echo "Skip secret (copy instance_secret_warehouse.yml.example if needed)"
+if [[ -f "$ROOT/deploy/resources/git_sync_secret.yml" ]]; then
+  echo "Applying git sync secret..."
+  dataos-ctl apply -f "$ROOT/deploy/resources/git_sync_secret.yml" -w "$WORKSPACE"
 fi
 
 echo "Applying Vulcan resource..."
 dataos-ctl apply -f "$DEPLOY_YAML" -w "$WORKSPACE"
 
-echo "Done. Verify:"
-dataos-ctl get -t vulcan -w "$WORKSPACE" 2>/dev/null || dataos-ctl get -w "$WORKSPACE" -r
+echo "Done. Verify (may need admin if 403):"
+dataos-ctl get -t vulcan -w "$WORKSPACE" -n sales-workforce-jk 2>/dev/null || true

@@ -1,72 +1,65 @@
+# Cloud config — Spark + s3lhdepot on Pacific (ct-sandbox)
+# Also set DATAOS_TENANT_ID=ct-sandbox in environment for CLI/runtime.
+# Local Postgres dev: use config.local.yaml via `make vulcan-cli` (see Makefile)
 
-name: "sales-workforce-jk"
-# display_name: "Human Friendly Name"
-tenant: "ct-sandbox"
+name: sales-workforce-jk
+tenant: ct-sandbox
+display_name: Sales & Workforce
 description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
 
-# Optional categorization
-tags: []  # e.g. ["marketing", "saas", "analytics"]
-terms: []  # e.g. ["glossary.data_product", "glossary.business_intelligence"]
+discoverable: true
+version: 0.1.0
+alignment: consumer_aligned
 
-# Metadata (domain, use cases, limitations) - edit as needed
+# Required for Spark gateways (VDE not supported on spark)
+vde: false
+
+tags:
+  - sales-workforce
+  - dataproduct
+  - spark
+  - iceberg
+  - lakehouse
+
+terms:
+  - glossary.data_product
+
 metadata:
-  domain: "default"
+  domain: sales_operations
   use_cases:
-  - "Sales performance tracking"
-  - "Daily revenue reporting"
-  - "Executive KPI dashboards"
-  - "Rep productivity analytics"
+    - Sales performance tracking
+    - Daily revenue reporting
+    - Executive KPI dashboards
+    - Rep productivity analytics
   limitations:
-  - "Uses mock seed data"
-  - "Does not currently support real-time ingestion"
-  - "Designed for local development/demo workloads"
-# Owners/users (used for approvals / notifications in some setups) - edit as needed
+    - Uses mock seed data (CSV seeds)
+    - Scheduled refresh daily at 06:00 UTC
+    - Spark / Iceberg lakehouse on s3lhdepot
+
 users:
-  - username: "jitendrakumartmdcio"
-    github_username: "jatjitendra"
-    email: "jitendranitp24@gmail.com"
-    type: "OWNER"
+  - username: jitendrakumartmdcio
+    github_username: jatjitendra
+    email: jitendranitp24@gmail.com
+    type: OWNER
 
-# notification_targets:
-#   - type: console
-#     notify_on:
-#       - apply_start
-#       - apply_end
-#       - run_start
-#       - run_end
-#       - migration_start
-#       - migration_end
-#       - apply_failure
-#       - run_failure
-#       - audit_failure
-#       - migration_failure
-#       - plan_change
-#       - check_start
-#       - check_end
-#       - check_failure
+notification_targets:
+  - type: console
+    notify_on:
+      - apply_failure
+      - run_failure
+      - audit_failure
+      - migration_failure
+      - check_failure
 
-# --- Gateway Connection ---
-
-# --- Gateway Connection ---
 gateways:
-  warehouse:
+  s3lhdepot:
     connection:
-      type: postgres
-      host: warehouse
-      port: 5432
-      database: warehouse
-      user: vulcan
-      password: vulcan
+      type: depot
+      address: dataos://s3lhdepot
 
-    state_connection:
-      type: postgres
-      host: statestore
-      port: 5432
-      database: statestore
-      user: vulcan
-      password: vulcan
-
-default_gateway: warehouse
+default_gateway: s3lhdepot
 
 model_defaults:
-  dialect: postgres
+  dialect: spark
+  start: "2025-01-01"
+  cron: "@daily"

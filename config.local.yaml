@@ -1,0 +1,47 @@
+# Local Docker config — Postgres warehouse + statestore (not used on Pacific cloud)
+# Mounted by `make vulcan-cli` / `make fetchdf` / `make show-model` targets
+
+name: sales-workforce-jk
+tenant: ct-sandbox
+description: "Sales analytics data product — local Postgres stack for development."
+
+tags:
+  - sales-workforce
+  - postgres
+
+metadata:
+  domain: sales_operations
+  use_cases:
+    - Local development and validation
+  limitations:
+    - Uses mock seed data
+    - Local Docker Postgres only
+
+users:
+  - username: jitendrakumartmdcio
+    github_username: jatjitendra
+    email: jitendranitp24@gmail.com
+    type: OWNER
+
+gateways:
+  warehouse:
+    connection:
+      type: postgres
+      host: warehouse
+      port: 5432
+      database: warehouse
+      user: vulcan
+      password: vulcan
+
+    state_connection:
+      type: postgres
+      host: statestore
+      port: 5432
+      database: statestore
+      user: vulcan
+      password: vulcan
+
+default_gateway: warehouse
+
+model_defaults:
+  dialect: postgres

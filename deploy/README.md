@@ -1,30 +1,28 @@
-# Cloud deploy — Sales & Workforce
+# Deploy: Sales & Workforce (DataOS 2.0 / Vulcan)
 
-**DataOS 2.0 Vulcan single-file deploy** (no bundle).
+Single-file **`type: vulcan`** deploy — same Pacific settings as **practice-insights**.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| [`sales-workforce-jk-deploy.yaml`](sales-workforce-jk-deploy.yaml) | **Main deploy** — `type: vulcan` (API + workflow + repo + depot) |
-| [`resources/instance_secret_warehouse.yml.example`](resources/instance_secret_warehouse.yml.example) | Optional warehouse credentials template |
-| [`scripts/deploy.sh`](scripts/deploy.sh) | One-command deploy script |
-| [`DEPLOY.md`](DEPLOY.md) | Full step-by-step |
+| `sales-workforce-jk-deploy.yaml` | DataOS apply manifest (Spark + s3lhdepot) |
+| `DEPLOY.md` | Step-by-step deploy guide |
+| `scripts/deploy.sh` | Apply helper |
+| `resources/git_sync_secret.yml.example` | Git credentials (private repo only) |
+| `resources/instance_secret_warehouse.yml.example` | Notes — s3lhdepot is platform-managed |
 
-## Quick deploy
+## Quick apply
 
 ```bash
 dataos-ctl context select --name pacific-051426
-dataos-ctl login
 dataos-ctl apply -f deploy/sales-workforce-jk-deploy.yaml -w ct-sandbox
 ```
 
-Regenerate YAML after project changes:
+## Regenerate deploy stub (optional)
 
 ```bash
 make deploy-yaml
 ```
 
-## Old approach (removed)
-
-Bundle, data product spec, scanner, and separate service/workflow YAMLs are **not used** in the new Vulcan deploy path.
+Writes `deploy/sales-workforce-jk-deploy.generated.yaml`. Merge spark/driver/executor fields into the main deploy file if needed.
