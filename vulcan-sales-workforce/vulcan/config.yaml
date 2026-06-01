@@ -4,6 +4,7 @@
 # Local Postgres dev uses config.local.yaml (see Makefile).
 
 name: sales-workforce-jk
+tenant: ct-sandbox
 display_name: Sales & Workforce
 description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
 
