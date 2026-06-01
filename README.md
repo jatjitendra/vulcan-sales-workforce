@@ -8,10 +8,10 @@ Deploy guide: [Vulcan Deployment Steps](https://tmdc-io.github.io/vulcan-book/gu
 
 | Path | Purpose |
 |------|---------|
-| `vulcan-sales-workforce/vulcan/config.yaml` | **Cloud** — depot gateway `dataos://s3lhdepot`, dialect `spark` |
-| `vulcan-sales-workforce/vulcan/config.local.yaml` | **Local** — Postgres Docker |
-| `domain-resource.yaml` | **Pacific apply** — `type: vulcan` manifest (`baseDir: vulcan-sales-workforce/vulcan`) |
-| `vulcan-sales-workforce/vulcan/models/`, `seeds/`, `semantics/`, `checks/` | Data product |
+| `vulcan-sales-workforce/sales-workforce-jk/vulcan/config.yaml` | **Cloud** — depot gateway `dataos://s3lhdepot`, dialect `spark` |
+| `vulcan-sales-workforce/sales-workforce-jk/vulcan/config.local.yaml` | **Local** — Postgres Docker |
+| `domain-resource.yaml` | **Pacific apply** — `type: vulcan` manifest (`baseDir: vulcan-sales-workforce/sales-workforce-jk/vulcan`) |
+| `vulcan-sales-workforce/sales-workforce-jk/vulcan/models/` | SQL models, `semantics/`, and `dq/` rule packs |
 
 ## Local check (Postgres)
 

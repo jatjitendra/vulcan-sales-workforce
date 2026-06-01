@@ -1,0 +1,12 @@
+kind: dq
+name: sales_by_rep_daily_dq
+depends_on: analytics.sales_by_rep_daily
+
+rules:
+  - row_count > 0:
+      name: rep_daily_not_empty
+      dimension: completeness
+
+  - avg(revenue) between 0 and 100000:
+      name: avg_revenue_in_reasonable_range_for_mock
+      dimension: accuracy

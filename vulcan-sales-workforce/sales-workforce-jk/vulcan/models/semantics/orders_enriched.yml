@@ -1,0 +1,30 @@
+kind: semantic
+name: orders
+depends_on: analytics.orders_enriched
+description: Enriched orders with rep attributes for sales analytics
+
+dimensions:
+  - order_id
+  - order_date
+  - employee_id
+  - rep_name
+  - rep_department
+  - customer_id
+  - amount
+  - status
+
+measures:
+  - name: order_count
+    type: count
+    expression: "{orders.order_id}"
+    description: Total orders
+
+  - name: total_revenue
+    type: sum
+    expression: "{orders.amount}"
+    description: Total order amount
+
+  - name: avg_order_value
+    type: avg
+    expression: "{orders.amount}"
+    description: Average order value

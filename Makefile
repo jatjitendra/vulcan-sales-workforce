@@ -20,7 +20,7 @@ VULCAN_STATESTORE_PORT ?= 5432
 # Use `-i` (not `-t`) so this works in non-interactive CI/agents.
 VULCAN_CLI_FLAGS ?= --ignore-warnings
 # Local CLI uses Postgres config; cloud deploy uses config.yaml (Spark + s3lhdepot).
-VULCAN_PROJECT_DIR ?= sales-workforce-jk/vulcan
+VULCAN_PROJECT_DIR ?= vulcan-sales-workforce/sales-workforce-jk/vulcan
 VULCAN_CONFIG_FILE ?= $(VULCAN_PROJECT_DIR)/config.local.yaml
 
 .PHONY: help up down network certs infra warehouse warehouse-down transpiler transpiler-down setup \

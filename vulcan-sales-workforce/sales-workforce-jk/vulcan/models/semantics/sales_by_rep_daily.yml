@@ -1,0 +1,26 @@
+kind: semantic
+name: sales_by_rep
+depends_on: analytics.sales_by_rep_daily
+description: Daily completed-order KPIs per sales rep
+
+dimensions:
+  - order_date
+  - employee_id
+  - rep_name
+  - rep_department
+
+measures:
+  - name: total_orders
+    type: sum
+    expression: "{sales_by_rep.order_count}"
+    description: Sum of daily order counts across reps
+
+  - name: total_revenue
+    type: sum
+    expression: "{sales_by_rep.revenue}"
+    description: Total revenue
+
+  - name: avg_order_value
+    type: avg
+    expression: "{sales_by_rep.avg_order_value}"
+    description: Average order value
