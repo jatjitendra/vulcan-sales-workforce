@@ -6,8 +6,7 @@
 # Or paste the alias from:               make print-alias
 # (CLI/API containers use host.docker.internal:5431 for Postgres; see VULCAN_STATESTORE_* below.)
 #
-# Share without the monorepo: copy this folder (Makefile, config.local.yaml,
-# models/, semantics/, docker/*.yml). Pull images from your registry.
+# Share without the monorepo: copy this folder (Makefile, vulcan/, docker/*.yml).
 #
 # VULCAN_IMAGE ?= tmdcio/vulcan-postgres:0.228.1.14
 VULCAN_IMAGE ?= tmdcio/vulcan-postgres:0.228.1.14
@@ -21,7 +20,8 @@ VULCAN_STATESTORE_PORT ?= 5432
 # Use `-i` (not `-t`) so this works in non-interactive CI/agents.
 VULCAN_CLI_FLAGS ?= --ignore-warnings
 # Local CLI uses Postgres config; cloud deploy uses config.yaml (Spark + s3lhdepot).
-VULCAN_CONFIG_FILE ?= config.local.yaml
+VULCAN_PROJECT_DIR ?= vulcan
+VULCAN_CONFIG_FILE ?= $(VULCAN_PROJECT_DIR)/config.local.yaml
 
 .PHONY: help up down network certs infra warehouse warehouse-down transpiler transpiler-down setup \
 	vulcan-cli fetchdf show-model deploy-yaml deploy-apply local-infra local-check \
@@ -42,7 +42,7 @@ print-alias: ## Print a shell alias (copy into ~/.zshrc); statestore via host:54
 VULCAN_DOCKER_COMMON = docker run -i --rm --network=vulcan \
 	$(VULCAN_DOCKER_EXTRA_HOSTS) \
 	-v "$$(pwd):/workspace" -w /workspace \
-	-v "$$(pwd)/$(VULCAN_CONFIG_FILE):/workspace/config.yaml:ro" \
+	-v "$$(pwd)/$(VULCAN_CONFIG_FILE):/workspace/$(VULCAN_PROJECT_DIR)/config.yaml:ro" \
 	-e STATESTORE_HOST=$(VULCAN_STATESTORE_HOST) \
 	-e STATESTORE_PORT=$(VULCAN_STATESTORE_PORT) \
 	-e MINIO_ENDPOINT=http://minio:9000 \
@@ -69,27 +69,27 @@ vulcan-cli: ensure-infra ## Run vulcan in Docker: make vulcan-cli CMD="plan"
 ifndef CMD
 	$(error Usage: make vulcan-cli CMD="plan"   or   CMD="audit")
 endif
-	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
-	$(VULCAN_DOCKER_COMMON) vulcan -p . $(VULCAN_CLI_FLAGS) $(CMD)
+	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
+	$(VULCAN_DOCKER_COMMON) vulcan -p $(VULCAN_PROJECT_DIR) $(VULCAN_CLI_FLAGS) $(CMD)
 
 fetchdf: ensure-infra ## Run SQL: make fetchdf SQL='SELECT * FROM analytics.orders_enriched LIMIT 5'
 ifndef SQL
 	$(error Usage: make fetchdf SQL='SELECT * FROM analytics.orders_enriched LIMIT 5')
 endif
-	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
-	@printf '%s\n' '$(SQL)' > .cache/_query.sql
-	$(VULCAN_DOCKER_COMMON) vulcan -p . $(VULCAN_CLI_FLAGS) fetchdf --file .cache/_query.sql
+	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
+	@printf '%s\n' '$(SQL)' > $(VULCAN_PROJECT_DIR)/.cache/_query.sql
+	$(VULCAN_DOCKER_COMMON) vulcan -p $(VULCAN_PROJECT_DIR) $(VULCAN_CLI_FLAGS) fetchdf --file $(VULCAN_PROJECT_DIR)/.cache/_query.sql
 
 show-model: ensure-infra ## Preview model rows: make show-model MODEL=analytics.orders_enriched LIMIT=10
 ifndef MODEL
 	$(error Usage: make show-model MODEL=analytics.orders_enriched LIMIT=10)
 endif
-	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
-	$(VULCAN_DOCKER_COMMON) vulcan -p . $(VULCAN_CLI_FLAGS) evaluate $(MODEL) --limit $(or $(LIMIT),10)
+	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
+	$(VULCAN_DOCKER_COMMON) vulcan -p $(VULCAN_PROJECT_DIR) $(VULCAN_CLI_FLAGS) evaluate $(MODEL) --limit $(or $(LIMIT),10)
 
 deploy-yaml: ensure-infra ## Generate starter domain-resource.yaml via vulcan create_deploy_yaml
-	@mkdir -p .cache .logs && chmod 777 .cache .logs 2>/dev/null || true
-	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/domain-resource.generated.yaml --overwrite' VULCAN_CONFIG_FILE=config.yaml
+	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
+	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/domain-resource.generated.yaml --overwrite' VULCAN_CONFIG_FILE=$(VULCAN_PROJECT_DIR)/config.yaml
 	@echo "Generated: .cache/domain-resource.generated.yaml"
 	@echo "Merge Spark/driver/executor fields into domain-resource.yaml if needed."
 
@@ -110,7 +110,7 @@ deploy-apply: ## Pacific Step 4: dataos-ctl resource apply domain-resource.yaml
 	./deploy/scripts/deploy.sh
 
 reset-state: ## Clear stale Vulcan state/cache (fixes duplicate model errors)
-	docker run --rm -v "$$(pwd):/workspace" alpine sh -c 'rm -rf /workspace/.cache /workspace/.state /workspace/.logs && mkdir -p /workspace/.cache /workspace/.logs && chmod -R 777 /workspace/.cache /workspace/.logs'
+	docker run --rm -v "$$(pwd):/workspace" alpine sh -c 'rm -rf /workspace/$(VULCAN_PROJECT_DIR)/.cache /workspace/$(VULCAN_PROJECT_DIR)/.state /workspace/$(VULCAN_PROJECT_DIR)/.logs /workspace/.cache /workspace/.state /workspace/.logs && mkdir -p /workspace/$(VULCAN_PROJECT_DIR)/.cache /workspace/$(VULCAN_PROJECT_DIR)/.logs && chmod -R 777 /workspace/$(VULCAN_PROJECT_DIR)/.cache /workspace/$(VULCAN_PROJECT_DIR)/.logs'
 	@docker exec vulcan-statestore-statestore-1 psql -U vulcan -d statestore -c 'DROP SCHEMA IF EXISTS vulcan CASCADE; CREATE SCHEMA vulcan;' 2>/dev/null || true
 	@echo "Cleared .cache, .state, .logs and statestore vulcan schema."
 
@@ -124,10 +124,10 @@ vulcan-api-docker: ## Vulcan API :8000 using $(VULCAN_IMAGE) (needs infra + tran
 		-e VULCAN__TRANSPILER__BASE_URL=http://vulcan-transpiler-api:8100 \
 		-e VULCAN__GRAPHQL__BASE_URL=http://vulcan-graphql:3000 \
 		-p 8000:8000 \
-		$(VULCAN_IMAGE) vulcan -p . api --host 0.0.0.0 --port 8000
+		$(VULCAN_IMAGE) vulcan -p $(VULCAN_PROJECT_DIR) api --host 0.0.0.0 --port 8000
 
 vulcan-api-pip: ## Vulcan API on host :8000 (pip vulcan; use STATESTORE_HOST=127.0.0.1 STATESTORE_PORT=5431)
-	vulcan -p . api --host 0.0.0.0 --port 8000
+	vulcan -p $(VULCAN_PROJECT_DIR) api --host 0.0.0.0 --port 8000
 
 up: ## One command: full stack. Order: infra → warehouse → transpiler → Vulcan → MySQL proxy
 	$(MAKE) network

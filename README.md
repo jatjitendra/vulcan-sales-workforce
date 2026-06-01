@@ -8,10 +8,10 @@ Deploy guide: [Vulcan Deployment Steps](https://tmdc-io.github.io/vulcan-book/gu
 
 | Path | Purpose |
 |------|---------|
-| `config.yaml` | **Cloud** — depot gateway `dataos://s3lhdepot`, dialect `spark` |
-| `config.local.yaml` | **Local** — Postgres Docker |
-| `domain-resource.yaml` | **Pacific apply** — `type: vulcan` manifest |
-| `models/`, `seeds/`, `semantics/`, `checks/` | Data product |
+| `vulcan/config.yaml` | **Cloud** — depot gateway `dataos://s3lhdepot`, dialect `spark` |
+| `vulcan/config.local.yaml` | **Local** — Postgres Docker |
+| `domain-resource.yaml` | **Pacific apply** — `type: vulcan` manifest (`baseDir: vulcan`) |
+| `vulcan/models/`, `seeds/`, `semantics/`, `checks/` | Data product |
 
 ## Local check (Postgres)
 

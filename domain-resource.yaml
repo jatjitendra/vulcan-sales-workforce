@@ -17,7 +17,7 @@ tags:
   - spark
   - iceberg
   - lakehouse
-  - retry-plan-4
+  - retry-plan-5
 description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
 owner: jitendrakumartmdcio
 tenant: ct-sandbox
@@ -32,7 +32,8 @@ spec:
     syncFlags:
       - "--ref=main"
       - "--submodules=off"
-    baseDir: .
+    # Pacific resolves project path as /etc/dataos/work/<baseDir> (do not use ".")
+    baseDir: vulcan
     secret: ct-sandbox:github-token
 
   depots:
