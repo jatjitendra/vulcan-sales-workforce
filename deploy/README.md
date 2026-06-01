@@ -7,7 +7,7 @@ Follow [Vulcan Deployment Steps](https://tmdc-io.github.io/vulcan-book/guides/de
 | File | Purpose |
 |------|---------|
 | `../domain-resource.yaml` | DataOS apply manifest (`type: vulcan`) |
-| `../vulcan/config.yaml` | Cloud Vulcan config (`repo.baseDir: vulcan`) |
+| `../vulcan-sales-workforce/vulcan/config.yaml` | Cloud Vulcan config (`repo.baseDir: vulcan-sales-workforce/vulcan`) |
 | `DEPLOY.md` | Step-by-step Pacific deploy |
 | `scripts/deploy.sh` | Apply helper |
 | `resources/git_sync_secret.yml.example` | Git credentials (private repo) |

@@ -10,8 +10,8 @@ The guide uses `ds` — same CLI as **`dataos-ctl`**. Use **`dataos-ctl resource
 
 | File | Purpose |
 |------|---------|
-| `vulcan/config.yaml` | Vulcan project config (Spark + `dataos://s3lhdepot`) |
-| `domain-resource.yaml` | DataOS `type: vulcan` apply manifest (`repo.baseDir: vulcan`) |
+| `vulcan-sales-workforce/vulcan/config.yaml` | Vulcan project config (Spark + `dataos://s3lhdepot`) |
+| `domain-resource.yaml` | DataOS `type: vulcan` apply manifest (`repo.baseDir: vulcan-sales-workforce/vulcan`) |
 
 Local dev uses `config.local.yaml` via Makefile (Postgres Docker).
 
