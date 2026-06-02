@@ -15,12 +15,12 @@ spec:
   compute: ct-sandbox-compute
   engine: spark
   repo:
-    url: https://github.com/jatjitendra/vulcan-sales-workforce.git
+    baseDir: vulcan-sales-workforce/sales-workforce-jk/vulcan
+    secret: ct-sandbox:github-token
     syncFlags:
       - "--ref=main"
       - "--submodules=off"
-    baseDir: vulcan-sales-workforce/sales-workforce-jk/vulcan
-    secret: ct-sandbox:github-token
+    url: https://github.com/jatjitendra/vulcan-sales-workforce.git
   depots:
     - dataos://s3lhdepot?purpose=rw
   workflow:

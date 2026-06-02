@@ -1,17 +1,18 @@
-kind: dq
-name: orders_enriched_dq
-depends_on: analytics.orders_enriched
+checks:
+  analytics.orders_enriched:
+    completeness:
+      - row_count > 0:
+          name: orders_enriched_not_empty
+          attributes:
+            description: Model must have at least one row
 
-rules:
-  - row_count > 0:
-      name: orders_enriched_not_empty
-      dimension: completeness
-
-  - failed rows:
-      name: invalid_status_values
-      dimension: validity
-      fail query: |
-        SELECT order_id, status
-        FROM analytics.orders_enriched
-        WHERE status NOT IN ('pending', 'completed', 'cancelled')
-      samples limit: 10
+    validity:
+      - failed rows:
+          name: invalid_status_values
+          fail query: |
+            SELECT order_id, status
+            FROM analytics.orders_enriched
+            WHERE status NOT IN ('pending', 'completed', 'cancelled')
+          samples limit: 10
+          attributes:
+            description: Status must be pending, completed, or cancelled
