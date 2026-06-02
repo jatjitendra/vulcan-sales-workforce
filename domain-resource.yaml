@@ -17,7 +17,7 @@ tags:
   - spark
   - iceberg
   - lakehouse
-  - retry-plan-12
+  - retry-plan-13
 description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
 owner: jitendrakumartmdcio
 tenant: ct-sandbox
@@ -31,8 +31,8 @@ spec:
     baseDir: vulcan-sales-workforce/sales-workforce-jk/vulcan
     secret: ct-sandbox:github-token
     syncFlags:
-      - "--ref=main"
-      - "--submodules=off"
+      - --ref=main
+      - --submodules=off
     url: https://github.com/jatjitendra/vulcan-sales-workforce.git
 
   depots:
@@ -62,15 +62,11 @@ spec:
       command:
         - vulcan
       arguments:
-        - -p
-        - /etc/dataos/work/vulcan-sales-workforce/sales-workforce-jk/vulcan
         - migrate
     plan:
       command:
         - vulcan
       arguments:
-        - -p
-        - /etc/dataos/work/vulcan-sales-workforce/sales-workforce-jk/vulcan
         - --log-to-stdout
         - plan
         - --auto-apply
@@ -78,8 +74,6 @@ spec:
       command:
         - vulcan
       arguments:
-        - -p
-        - /etc/dataos/work/vulcan-sales-workforce/sales-workforce-jk/vulcan
         - --log-to-stdout
         - run
 
