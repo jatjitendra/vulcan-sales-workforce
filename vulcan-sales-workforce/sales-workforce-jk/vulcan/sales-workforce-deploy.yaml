@@ -1,13 +1,3 @@
-# DataOS Vulcan resource — Pacific deploy manifest
-# Guide: https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/
-# Instance: pacific-051426 | Workspace / tenant: ct-sandbox
-#
-# Apply (Step 4) — CLI v3 (no -w flag; use tenant select -n ct-sandbox):
-#   export PATH="$HOME/.dataos/v2/bin:$PATH"
-#   dataos-ctl tenant select -n ct-sandbox
-#   dataos-ctl login
-#   dataos-ctl resource apply -f domain-resource.yaml
-
 version: v1alpha
 type: vulcan
 name: sales-workforce-jk
@@ -17,27 +7,22 @@ tags:
   - spark
   - iceberg
   - lakehouse
-  - retry-plan-13
-description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
+description: Sales analytics data product — CSV seeds to analytics marts on s3lhdepot.
 owner: jitendrakumartmdcio
 tenant: ct-sandbox
-
 spec:
   runAsUser: "jitendrakumartmdcio"
   compute: ct-sandbox-compute
   engine: spark
-
   repo:
+    url: https://github.com/jatjitendra/vulcan-sales-workforce.git
+    syncFlags:
+      - "--ref=main"
+      - "--submodules=off"
     baseDir: vulcan-sales-workforce/sales-workforce-jk/vulcan
     secret: ct-sandbox:github-token
-    syncFlags:
-      - --ref=main
-      - --submodules=off
-    url: https://github.com/jatjitendra/vulcan-sales-workforce.git
-
   depots:
     - dataos://s3lhdepot?purpose=rw
-
   workflow:
     type: schedule
     logLevel: INFO
@@ -57,7 +42,6 @@ spec:
         cores: 2
         memory: "4G"
         instances: 2
-
     migrate:
       command:
         - vulcan
@@ -76,7 +60,6 @@ spec:
       arguments:
         - --log-to-stdout
         - run
-
   api:
     replicas: 1
     logLevel: INFO
@@ -87,7 +70,6 @@ spec:
       limit:
         cpu: "1000m"
         memory: "2Gi"
-
   sparkConf:
     spark.sql.shuffle.partitions: "100"
     spark.sql.adaptive.enabled: "true"

@@ -87,11 +87,11 @@ endif
 	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
 	$(VULCAN_DOCKER_COMMON) vulcan -p $(VULCAN_PROJECT_DIR) $(VULCAN_CLI_FLAGS) evaluate $(MODEL) --limit $(or $(LIMIT),10)
 
-deploy-yaml: ensure-infra ## Generate starter domain-resource.yaml via vulcan create_deploy_yaml
+deploy-yaml: ensure-infra ## Generate starter sales-workforce-deploy.yaml via vulcan create_deploy_yaml
 	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
-	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/domain-resource.generated.yaml --overwrite' VULCAN_CONFIG_FILE=$(VULCAN_PROJECT_DIR)/config.yaml
-	@echo "Generated: .cache/domain-resource.generated.yaml"
-	@echo "Merge Spark/driver/executor fields into domain-resource.yaml if needed."
+	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/sales-workforce-deploy.generated.yaml --overwrite' VULCAN_CONFIG_FILE=$(VULCAN_PROJECT_DIR)/config.yaml
+	@echo "Generated: $(VULCAN_PROJECT_DIR)/.cache/sales-workforce-deploy.generated.yaml"
+	@echo "Merge Spark/driver/executor fields into $(VULCAN_PROJECT_DIR)/sales-workforce-deploy.yaml if needed."
 
 local-infra: network ## Start statestore + warehouse only (skip MinIO/transpiler if they fail)
 	docker compose -p vulcan-statestore -f docker/docker-compose.infra.yml up -d statestore
@@ -106,7 +106,7 @@ local-check: ## Local validate: info → plan → audit (needs: make local-infra
 	@DATAOS_TENANT_ID=$${DATAOS_TENANT_ID:-ct-sandbox} VULCAN_TENANT_ID=$${VULCAN_TENANT_ID:-ct-sandbox} \
 		$(MAKE) vulcan-cli CMD="audit"
 
-deploy-apply: ## Pacific Step 4: dataos-ctl resource apply domain-resource.yaml
+deploy-apply: ## Pacific Step 4: dataos-ctl resource apply sales-workforce-deploy.yaml
 	./deploy/scripts/deploy.sh
 
 reset-state: ## Clear stale Vulcan state/cache (fixes duplicate model errors)

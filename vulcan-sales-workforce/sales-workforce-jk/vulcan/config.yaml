@@ -1,18 +1,15 @@
-# Cloud Vulcan config — Pacific / ct-sandbox (Spark + s3lhdepot depot)
-# Guide: https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/
-# tenant: set DATAOS_TENANT_ID=ct-sandbox in environment on Pacific (not a YAML key)
-# Local Postgres dev uses config.local.yaml (see Makefile).
-
-name: sales-workforce-jk
-tenant: ct-sandbox
-display_name: Sales & Workforce
-description: "Sales analytics data product for Pacific (pacific-051426) / ct-sandbox. Rep performance, revenue KPIs, and business metrics via Vulcan 2.0 semantics."
-
 discoverable: true
 version: 0.1.0
 alignment: consumer_aligned
 
 vde: false
+
+name: sales-workforce-jk
+display_name: Sales & Workforce
+tenant: ct-sandbox
+description: |
+  Sales analytics data product (DataOS 2.0). CSV seeds load into raw.* models;
+  Vulcan transforms to analytics.* for rep performance, revenue KPIs, and semantics.
 
 tags:
   - sales-workforce
@@ -20,36 +17,22 @@ tags:
   - spark
   - iceberg
   - lakehouse
+  - vulcan
 
 terms:
   - glossary.data_product
+  - glossary.lakehouse
 
-metadata:
-  domain: sales_operations
-  use_cases:
-    - Sales performance tracking
-    - Daily revenue reporting
-    - Executive KPI dashboards
-    - Rep productivity analytics
-  limitations:
-    - Uses mock seed data (CSV seeds)
-    - Scheduled refresh daily at 06:00 UTC
-    - Spark / Iceberg lakehouse on s3lhdepot
+domain: sales_operations
 
-users:
-  - username: jitendrakumartmdcio
-    github_username: jatjitendra
-    email: jitendranitp24@gmail.com
-    type: OWNER
+analytics:
+  enabled: false
 
-notification_targets:
-  - type: console
-    notify_on:
-      - apply_failure
-      - run_failure
-      - audit_failure
-      - migration_failure
-      - check_failure
+model_defaults:
+  dialect: spark2
+  start: '2025-01-01'
+  cron: '@daily'
+  owner: jitendrakumartmdcio
 
 gateways:
   default:
@@ -59,7 +42,21 @@ gateways:
 
 default_gateway: default
 
-model_defaults:
-  dialect: spark
-  start: "2025-01-01"
-  cron: "@daily"
+notification_targets:
+  - type: console
+    notify_on:
+      - apply_start
+      - apply_end
+      - apply_failure
+      - run_start
+      - run_end
+      - run_failure
+      - check_start
+      - check_end
+      - check_failure
+
+users:
+  - username: jitendrakumartmdcio
+    github_username: jatjitendra
+    email: jitendranitp24@gmail.com
+    type: OWNER

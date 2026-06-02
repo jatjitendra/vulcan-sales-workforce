@@ -5,7 +5,7 @@ set -euo pipefail
 WORKSPACE="${WORKSPACE:-ct-sandbox}"
 CONTEXT="${DATAOS_CONTEXT:-pacific-051426}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-MANIFEST="$ROOT/domain-resource.yaml"
+MANIFEST="$ROOT/vulcan-sales-workforce/sales-workforce-jk/vulcan/sales-workforce-deploy.yaml"
 
 echo "Deploying from: $ROOT"
 echo "Context: $CONTEXT"

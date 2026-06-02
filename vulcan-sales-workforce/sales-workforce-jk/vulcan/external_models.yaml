@@ -1,0 +1,3 @@
+# External tables not managed by Vulcan migrations.
+# CSV seeds are loaded via SEED models in models/raw/ (raw.orders, raw.employees).
+[]

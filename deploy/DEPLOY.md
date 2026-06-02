@@ -4,14 +4,16 @@ Official guide: [Deployment Steps](https://tmdc-io.github.io/vulcan-book/guides/
 
 Pacific: **pacific-051426** · Workspace: **ct-sandbox** · Product: **sales-workforce-jk**
 
-The guide uses `ds` — same CLI as **`dataos-ctl`**. Use **`dataos-ctl resource`** subcommands (matches the guide's `ds resource ...`).
+Layout follows **practice-insights-v2** (`practice-insights-deploy.yaml` inside the `vulcan/` folder).
+
+The guide uses `ds` — same CLI as **`dataos-ctl`**.
 
 ## Two required files (guide)
 
 | File | Purpose |
 |------|---------|
-| `vulcan-sales-workforce/sales-workforce-jk/vulcan/config.yaml` | Vulcan project config (Spark + `dataos://s3lhdepot`) |
-| `domain-resource.yaml` | DataOS `type: vulcan` apply manifest (`repo.baseDir: vulcan-sales-workforce/sales-workforce-jk/vulcan`) |
+| `vulcan-sales-workforce/sales-workforce-jk/vulcan/config.yaml` | Vulcan project config (Spark2 + `dataos://s3lhdepot`) |
+| `vulcan-sales-workforce/sales-workforce-jk/vulcan/sales-workforce-deploy.yaml` | DataOS `type: vulcan` apply manifest |
 
 Local dev uses `config.local.yaml` via Makefile (Postgres Docker).
 
@@ -24,18 +26,17 @@ cd ~/Downloads/Vulcan
 export DATAOS_TENANT_ID=ct-sandbox
 export VULCAN_TENANT_ID=ct-sandbox
 
-# Local validate (minimal — no full make up)
 make local-infra
 make local-check
 
 git add .
-git commit -m "Pacific deploy: config.yaml + domain-resource.yaml"
+git commit -m "Pacific deploy: align with practice-insights-v2 layout"
 git push origin main
 ```
 
 ---
 
-## Step 2 — Git secret (private repo only)
+## Step 2 — Git secret (private repo)
 
 ```bash
 cp deploy/resources/git_sync_secret.yml.example deploy/resources/git_sync_secret.yml
@@ -43,7 +44,7 @@ cp deploy/resources/git_sync_secret.yml.example deploy/resources/git_sync_secret
 dataos-ctl resource apply -f deploy/resources/git_sync_secret.yml -w ct-sandbox
 ```
 
-Uncomment in `domain-resource.yaml`:
+Referenced in `sales-workforce-deploy.yaml`:
 
 ```yaml
 secret: ct-sandbox:github-token
@@ -68,10 +69,13 @@ dataos-ctl resource get -t stack -a -w ct-sandbox
 
 ## Step 4 — Deploy Vulcan resource
 
+Same pattern as practice-insights:
+
 ```bash
 dataos-ctl context select --name pacific-051426
+dataos-ctl tenant select -n ct-sandbox
 dataos-ctl login
-dataos-ctl resource apply -f domain-resource.yaml -w ct-sandbox
+dataos-ctl resource apply -f vulcan-sales-workforce/sales-workforce-jk/vulcan/sales-workforce-deploy.yaml
 ```
 
 Or:
@@ -82,20 +86,11 @@ make deploy-apply
 
 ### CLI requirement
 
-If you see:
-
-```text
-unknown type 'vulcan'
-apply...nothing
-```
-
-Your **dataos-ctl** is too old (e.g. 2.27.8). Ask admin for a CLI that supports `type: vulcan`, or ask them to apply `domain-resource.yaml` for you (same as practice-insights).
+If you see `unknown type 'vulcan'`, upgrade **dataos-ctl** or ask admin to apply the manifest.
 
 ---
 
 ## Step 5 — Monitor & verify
-
-**UI:** Runtime tab → **plan**, **run**, **api** pods.
 
 **CLI status:**
 
@@ -103,19 +98,13 @@ Your **dataos-ctl** is too old (e.g. 2.27.8). Ask admin for a CLI that supports 
 dataos-ctl resource get -t vulcan -n sales-workforce-jk -w ct-sandbox
 ```
 
-**Logs (per deployment guide):**
+**Logs:**
 
 ```bash
-# Plan / migration
-dataos-ctl resource log -t Vulcan -n sales-workforce-jk \
-  -w ct-sandbox -c main
-
-# Model run (Spark driver)
-dataos-ctl resource log -t Vulcan -n sales-workforce-jk \
-  -w ct-sandbox -c main -r
+dataos-ctl resource log -t vulcan -n sales-workforce-jk -w ct-sandbox -c main
 ```
 
-Runtime container groups in UI: `sales-workforce-jk-plan-execute`, `sales-workforce-jk-run-execute`, `sales-workforce-jk-api`.
+Runtime pods: `sales-workforce-jk-plan-execute`, `sales-workforce-jk-run-execute`, `sales-workforce-jk-api`.
 
 **API:**
 
@@ -126,15 +115,16 @@ curl -s "https://pacific-051426.dataos.cloud/ct-sandbox/vulcan/sales-workforce-j
 
 ---
 
-## Command reference (guide → your CLI)
+## Comparison with practice-insights-v2
 
-| Guide | Your command |
-|-------|--------------|
-| `ds resource apply -f domain-resource.yaml` | `dataos-ctl resource apply -f domain-resource.yaml -w ct-sandbox` |
-| `ds resource -t depot get -n s3lhdepot -a` | `dataos-ctl resource get -t depot -n s3lhdepot -a -w ct-sandbox` |
-| `ds resource -t vulcan -n sales-workforce-jk get` | `dataos-ctl resource get -t vulcan -n sales-workforce-jk -w ct-sandbox` |
-
-Note: `dataos-ctl apply` and `dataos-ctl resource apply` are equivalent; prefer **`resource`** to match the guide.
+| Item | practice-insights | sales-workforce-jk |
+|------|-------------------|---------------------|
+| Deploy YAML | `vulcan/practice-insights-deploy.yaml` | `vulcan/sales-workforce-deploy.yaml` |
+| Engine | `spark` | `spark` |
+| Dialect | `spark2` | `spark2` |
+| Compute | `ct-sandbox-compute` | `ct-sandbox-compute` |
+| Depot | `s3lhdepot` | `s3lhdepot` |
+| Data source | Nilus → raw tables | CSV seeds → `raw.*` |
 
 ---
 
@@ -145,5 +135,5 @@ Note: `dataos-ctl apply` and `dataos-ctl resource apply` are equivalent; prefer 
 | `unknown type 'vulcan'` | Upgrade dataos-ctl or admin applies |
 | `403 Forbidden` | Admin: grant apply/get on vulcan in ct-sandbox |
 | Duplicate model keys locally | `make reset-state` |
-| Docker permission on MinIO/transpiler | Use `make local-infra` not `make up` |
-| Spark run failures | Check `*-run-execute` logs + Spark UI (guide) |
+| Plan: config not found | Verify `baseDir` matches repo path; compare with practice-insights plan pod |
+| Spark run failures | Check `*-run-execute` logs + Spark UI |
