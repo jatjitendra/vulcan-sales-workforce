@@ -1,0 +1,6 @@
+store_id,store_name,region,store_type
+101,Downtown Market,North,flagship
+102,Suburban Plaza,West,standard
+103,Airport Express,South,express
+104,University Store,East,standard
+105,Outlet Center,West,outlet

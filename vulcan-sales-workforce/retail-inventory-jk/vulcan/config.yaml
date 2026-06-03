@@ -1,0 +1,62 @@
+discoverable: true
+version: 0.1.0
+alignment: consumer_aligned
+
+vde: false
+
+name: retail-inventory-jk
+display_name: Retail & Inventory Analytics
+tenant: ct-sandbox
+description: |
+  Retail inventory data product (DataOS 2.0). CSV seeds load staging store, product,
+  and movement data; Vulcan builds marts for on-hand inventory and daily store performance.
+
+tags:
+  - retail-inventory
+  - dataproduct
+  - spark
+  - iceberg
+  - lakehouse
+  - vulcan
+
+terms:
+  - glossary.data_product
+  - glossary.lakehouse
+
+domain: retail_operations
+
+analytics:
+  enabled: false
+
+model_defaults:
+  dialect: spark2
+  start: '2025-01-01'
+  cron: '@daily'
+  owner: jitendrakumartmdcio
+
+gateways:
+  default:
+    connection:
+      type: depot
+      address: dataos://s3lhdepot
+
+default_gateway: default
+
+notification_targets:
+  - type: console
+    notify_on:
+      - apply_start
+      - apply_end
+      - apply_failure
+      - run_start
+      - run_end
+      - run_failure
+      - check_start
+      - check_end
+      - check_failure
+
+users:
+  - username: jitendrakumartmdcio
+    github_username: jatjitendra
+    email: jitendranitp24@gmail.com
+    type: OWNER

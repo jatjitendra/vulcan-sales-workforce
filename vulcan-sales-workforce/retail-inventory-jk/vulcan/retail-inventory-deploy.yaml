@@ -1,0 +1,76 @@
+version: v1alpha
+type: vulcan
+name: retail-inventory-jk
+tags:
+  - retail-inventory
+  - dataproduct
+  - spark
+  - iceberg
+  - lakehouse
+description: Retail inventory data product — staging seeds to inventory marts on s3lhdepot.
+owner: jitendrakumartmdcio
+tenant: ct-sandbox
+spec:
+  runAsUser: "jitendrakumartmdcio"
+  compute: ct-sandbox-compute
+  engine: spark
+  repo:
+    baseDir: vulcan-sales-workforce/retail-inventory-jk/vulcan
+    secret: ct-sandbox:github-token
+    syncFlags:
+      - "--ref=main"
+      - "--submodules=off"
+    url: https://github.com/jatjitendra/vulcan-sales-workforce.git
+  depots:
+    - dataos://s3lhdepot?purpose=rw
+  workflow:
+    type: schedule
+    logLevel: INFO
+    schedule:
+      crons:
+        - "0 7 * * *"
+      endOn: "2027-01-01T00:00:00-00:00"
+      timezone: "UTC"
+      concurrencyPolicy: Forbid
+    resource:
+      driver:
+        coreLimit: "2000m"
+        cores: 1
+        memory: "3G"
+      executor:
+        coreLimit: "2000m"
+        cores: 2
+        memory: "4G"
+        instances: 2
+    migrate:
+      command:
+        - vulcan
+      arguments:
+        - migrate
+    plan:
+      command:
+        - vulcan
+      arguments:
+        - --log-to-stdout
+        - plan
+        - --auto-apply
+    run:
+      command:
+        - vulcan
+      arguments:
+        - --log-to-stdout
+        - run
+  api:
+    replicas: 1
+    logLevel: INFO
+    resource:
+      request:
+        cpu: "250m"
+        memory: "512Mi"
+      limit:
+        cpu: "1000m"
+        memory: "2Gi"
+  sparkConf:
+    spark.sql.shuffle.partitions: "100"
+    spark.sql.adaptive.enabled: "true"
+    spark.sql.adaptive.coalescePartitions.enabled: "true"

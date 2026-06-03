@@ -1,0 +1,18 @@
+checks:
+  marts.inventory_levels:
+    completeness:
+      - row_count > 0:
+          name: inventory_levels_not_empty
+          attributes:
+            description: Inventory mart must have at least one row
+
+    validity:
+      - failed rows:
+          name: non_negative_on_hand
+          fail query: |
+            SELECT store_id, product_id, on_hand_qty
+            FROM marts.inventory_levels
+            WHERE on_hand_qty < 0
+          samples limit: 10
+          attributes:
+            description: On-hand quantity must not be negative

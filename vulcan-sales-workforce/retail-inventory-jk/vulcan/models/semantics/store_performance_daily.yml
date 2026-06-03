@@ -1,0 +1,33 @@
+models:
+  marts.store_performance_daily:
+    alias: store_daily
+    description: Daily inbound and sale activity by store
+
+    dimensions:
+      includes:
+        - movement_date
+        - store_id
+        - store_name
+        - region
+        - store_type
+
+    measures:
+      total_inbound_units:
+        type: sum
+        expression: "{store_daily.inbound_units}"
+        description: Units received inbound
+
+      total_sale_units:
+        type: sum
+        expression: "{store_daily.sale_units}"
+        description: Units sold
+
+      total_inbound_events:
+        type: sum
+        expression: "{store_daily.inbound_events}"
+        description: Inbound movement events
+
+      total_sale_events:
+        type: sum
+        expression: "{store_daily.sale_events}"
+        description: Sale movement events

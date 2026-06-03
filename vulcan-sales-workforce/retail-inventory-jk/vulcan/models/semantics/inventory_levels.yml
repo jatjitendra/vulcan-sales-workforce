@@ -1,0 +1,31 @@
+models:
+  marts.inventory_levels:
+    alias: inventory
+    description: On-hand quantity and inventory value by store and product
+
+    dimensions:
+      includes:
+        - store_id
+        - store_name
+        - region
+        - store_type
+        - product_id
+        - product_name
+        - category
+        - unit_cost
+
+    measures:
+      sku_count:
+        type: count_distinct
+        expression: "{inventory.product_id}"
+        description: Distinct products in stock
+
+      total_on_hand:
+        type: sum
+        expression: "{inventory.on_hand_qty}"
+        description: Total units on hand
+
+      total_inventory_value:
+        type: sum
+        expression: "{inventory.inventory_value}"
+        description: Total inventory value

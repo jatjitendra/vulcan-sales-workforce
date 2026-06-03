@@ -20,8 +20,11 @@ VULCAN_STATESTORE_PORT ?= 5432
 # Use `-i` (not `-t`) so this works in non-interactive CI/agents.
 VULCAN_CLI_FLAGS ?= --ignore-warnings
 # Local CLI uses Postgres config; cloud deploy uses config.yaml (Spark + s3lhdepot).
-VULCAN_PROJECT_DIR ?= vulcan-sales-workforce/sales-workforce-jk/vulcan
+# Switch product: make local-check VULCAN_PRODUCT=retail-inventory-jk
+VULCAN_PRODUCT ?= retail-inventory-jk
+VULCAN_PROJECT_DIR ?= vulcan-sales-workforce/$(VULCAN_PRODUCT)/vulcan
 VULCAN_CONFIG_FILE ?= $(VULCAN_PROJECT_DIR)/config.local.yaml
+VULCAN_DEPLOY_MANIFEST ?= $(VULCAN_PROJECT_DIR)/$(VULCAN_PRODUCT)-deploy.yaml
 
 .PHONY: help up down network certs infra warehouse warehouse-down transpiler transpiler-down setup \
 	vulcan-cli fetchdf show-model deploy-yaml deploy-apply local-infra local-check \
@@ -31,7 +34,8 @@ VULCAN_CONFIG_FILE ?= $(VULCAN_PROJECT_DIR)/config.local.yaml
 DOCKER_COMPOSE = docker compose
 
 help: ## Show targets
-	@echo 'examples/try — Postgres + Docker (portable: only this directory)'
+	@echo 'Vulcan data products — set VULCAN_PRODUCT=retail-inventory-jk or sales-workforce-jk'
+	@echo 'Active product: $(VULCAN_PRODUCT) ($(VULCAN_PROJECT_DIR))'
 	@echo 'CLI image: $(VULCAN_IMAGE)'
 	@echo ''
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-22s %s\n", $$1, $$2}'
@@ -72,17 +76,17 @@ endif
 	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
 	$(VULCAN_DOCKER_COMMON) vulcan -p $(VULCAN_PROJECT_DIR) $(VULCAN_CLI_FLAGS) $(CMD)
 
-fetchdf: ensure-infra ## Run SQL: make fetchdf SQL='SELECT * FROM analytics.orders_enriched LIMIT 5'
+fetchdf: ensure-infra ## Run SQL: make fetchdf SQL='SELECT * FROM marts.inventory_levels LIMIT 5'
 ifndef SQL
-	$(error Usage: make fetchdf SQL='SELECT * FROM analytics.orders_enriched LIMIT 5')
+	$(error Usage: make fetchdf SQL='SELECT * FROM marts.inventory_levels LIMIT 5')
 endif
 	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
 	@printf '%s\n' '$(SQL)' > $(VULCAN_PROJECT_DIR)/.cache/_query.sql
 	$(VULCAN_DOCKER_COMMON) vulcan -p $(VULCAN_PROJECT_DIR) $(VULCAN_CLI_FLAGS) fetchdf --file $(VULCAN_PROJECT_DIR)/.cache/_query.sql
 
-show-model: ensure-infra ## Preview model rows: make show-model MODEL=analytics.orders_enriched LIMIT=10
+show-model: ensure-infra ## Preview model rows: make show-model MODEL=marts.inventory_levels LIMIT=10
 ifndef MODEL
-	$(error Usage: make show-model MODEL=analytics.orders_enriched LIMIT=10)
+	$(error Usage: make show-model MODEL=marts.inventory_levels LIMIT=10)
 endif
 	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
 	$(VULCAN_DOCKER_COMMON) vulcan -p $(VULCAN_PROJECT_DIR) $(VULCAN_CLI_FLAGS) evaluate $(MODEL) --limit $(or $(LIMIT),10)
@@ -106,7 +110,7 @@ local-check: ## Local validate: info → plan → audit (needs: make local-infra
 	@DATAOS_TENANT_ID=$${DATAOS_TENANT_ID:-ct-sandbox} VULCAN_TENANT_ID=$${VULCAN_TENANT_ID:-ct-sandbox} \
 		$(MAKE) vulcan-cli CMD="audit"
 
-deploy-apply: ## Pacific Step 4: dataos-ctl resource apply sales-workforce-deploy.yaml
+deploy-apply: ## Pacific Step 4: apply $(VULCAN_PRODUCT)-deploy.yaml (override: VULCAN_PRODUCT=...)
 	./deploy/scripts/deploy.sh
 
 reset-state: ## Clear stale Vulcan state/cache (fixes duplicate model errors)

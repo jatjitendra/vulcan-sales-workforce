@@ -1,0 +1,13 @@
+checks:
+  marts.store_performance_daily:
+    completeness:
+      - row_count > 0:
+          name: store_daily_not_empty
+          attributes:
+            description: Store performance mart must have at least one row
+
+    accuracy:
+      - avg(sale_units) between 0 and 1000:
+          name: sale_units_reasonable_for_mock
+          attributes:
+            description: Average daily sale units within mock data range
