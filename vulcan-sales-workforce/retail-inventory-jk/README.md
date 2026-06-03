@@ -7,7 +7,7 @@ Pacific: **pacific-051426** · Tenant: **ct-sandbox** · Resource name: **`retai
 ## Layout
 
 ```
-retail-inventory-jk/vulcan/
+vulcan-sales-workforce/retail-inventory-jk/vulcan/
 ├── config.yaml
 ├── config.local.yaml
 ├── retail-inventory-jk-deploy.yaml
@@ -20,6 +20,8 @@ retail-inventory-jk/vulcan/
 └── seeds/
 ```
 
+Git: **Bitbucket** `https://bitbucket.org/tmdc/vulcan-sales-workforce` · `baseDir: vulcan-sales-workforce/retail-inventory-jk/vulcan`
+
 ## Local validate
 
 From repo root:
@@ -31,7 +33,7 @@ make local-check VULCAN_PRODUCT=retail-inventory-jk
 ## Deploy to Pacific
 
 ```bash
-dataos-ctl resource apply -f retail-inventory-jk/vulcan/retail-inventory-jk-deploy.yaml
+dataos-ctl resource apply -f vulcan-sales-workforce/retail-inventory-jk/vulcan/retail-inventory-jk-deploy.yaml
 ```
 
 Or:

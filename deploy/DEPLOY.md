@@ -2,53 +2,65 @@
 
 Official guide: [Deployment Steps](https://tmdc-io.github.io/vulcan-book/guides/deployment_guide/)
 
-Pacific: **pacific-051426** · Workspace: **ct-sandbox** · Product: **sales-workforce-jk**
+Pacific: **pacific-051426** · Workspace: **ct-sandbox**
 
-Layout follows **practice-insights-v2** (`practice-insights-deploy.yaml` inside the `vulcan/` folder).
+Layout follows **practice-insights-v2** — Bitbucket repo, `bitbucket-cred-mr`, deploy YAML inside each `vulcan/` folder.
 
 The guide uses `ds` — same CLI as **`dataos-ctl`**.
 
-## Two required files (guide)
+## Two required files (per product)
 
 | File | Purpose |
 |------|---------|
-| `vulcan-sales-workforce/sales-workforce-jk/vulcan/config.yaml` | Vulcan project config (Spark2 + `dataos://s3lhdepot`) |
-| `vulcan-sales-workforce/sales-workforce-jk/vulcan/sales-workforce-deploy.yaml` | DataOS `type: vulcan` apply manifest |
+| `vulcan-sales-workforce/<product>/vulcan/config.yaml` | Vulcan project config (Spark2 + `dataos://s3lhdepot`) |
+| `vulcan-sales-workforce/<product>/vulcan/<product>-deploy.yaml` | DataOS `type: vulcan` apply manifest |
 
 Local dev uses `config.local.yaml` via Makefile (Postgres Docker).
 
 ---
 
-## Step 1 — Prepare repository
+## Step 1 — Push to Bitbucket
+
+Create repo **`vulcan-sales-workforce`** on Bitbucket (same workspace as practice-insights, e.g. `tmdc`):
 
 ```bash
 cd ~/Downloads/Vulcan
+
+# Add Bitbucket remote (replace if your workspace differs)
+git remote add bitbucket https://bitbucket.org/tmdc/vulcan-sales-workforce.git
+# or: git remote set-url origin https://bitbucket.org/tmdc/vulcan-sales-workforce.git
+
 export DATAOS_TENANT_ID=ct-sandbox
 export VULCAN_TENANT_ID=ct-sandbox
-
-make local-infra
 make local-check
+make local-check VULCAN_PRODUCT=sales-workforce-jk
 
 git add .
-git commit -m "Pacific deploy: align with practice-insights-v2 layout"
-git push origin main
+git commit -m "Bitbucket deploy: monorepo layout aligned with practice-insights"
+git push bitbucket main
+```
+
+Repo layout on Bitbucket (matches `practice-insights` path pattern):
+
+```
+vulcan-sales-workforce/
+  retail-inventory-jk/vulcan/
+  sales-workforce-jk/vulcan/
 ```
 
 ---
 
-## Step 2 — Git secret (private repo)
+## Step 2 — Git secret (Bitbucket)
 
-```bash
-cp deploy/resources/git_sync_secret.yml.example deploy/resources/git_sync_secret.yml
-# edit credentials
-dataos-ctl resource apply -f deploy/resources/git_sync_secret.yml -w ct-sandbox
-```
-
-Referenced in `sales-workforce-deploy.yaml`:
+Use the **same secret as practice-insights** — no custom GitHub token needed:
 
 ```yaml
-secret: ct-sandbox:github-token
+secret: ct-sandbox:bitbucket-cred-mr
 ```
+
+If git-sync fails with auth errors, ask admin to confirm `bitbucket-cred-mr` includes access to `vulcan-sales-workforce`.
+
+Optional reference: `deploy/resources/bitbucket_secret.yml.example`
 
 ---
 
@@ -74,57 +86,52 @@ Same pattern as practice-insights:
 ```bash
 dataos-ctl context select --name pacific-051426
 dataos-ctl tenant select -n ct-sandbox
-dataos-ctl login
-dataos-ctl resource apply -f vulcan-sales-workforce/sales-workforce-jk/vulcan/sales-workforce-deploy.yaml
+
+# Retail (default)
+make deploy-apply
+
+# Sales workforce
+VULCAN_PRODUCT=sales-workforce-jk make deploy-apply
 ```
 
-Or:
+Or apply manifests directly:
 
 ```bash
-make deploy-apply
+dataos-ctl resource apply -f vulcan-sales-workforce/retail-inventory-jk/vulcan/retail-inventory-jk-deploy.yaml
+dataos-ctl resource apply -f vulcan-sales-workforce/sales-workforce-jk/vulcan/sales-workforce-jk-deploy.yaml
 ```
 
-### CLI requirement
+After switching from GitHub, delete stale resources first if plan still fails:
 
-If you see `unknown type 'vulcan'`, upgrade **dataos-ctl** or ask admin to apply the manifest.
+```bash
+dataos-ctl resource delete -t vulcan -n retail-inv-jk -v v1alpha
+dataos-ctl resource delete -t vulcan -n sales-workforce-jk -v v1alpha
+# wait until get returns nothing, then re-apply
+```
 
 ---
 
 ## Step 5 — Monitor & verify
 
-**CLI status:**
-
 ```bash
-dataos-ctl resource get -t vulcan -n sales-workforce-jk -w ct-sandbox
+dataos-ctl resource get -t vulcan -n retail-inv-jk
+dataos-ctl resource log -t vulcan -n retail-inv-jk -c main
 ```
 
-**Logs:**
-
-```bash
-dataos-ctl resource log -t vulcan -n sales-workforce-jk -w ct-sandbox -c main
-```
-
-Runtime pods: `sales-workforce-jk-plan-execute`, `sales-workforce-jk-run-execute`, `sales-workforce-jk-api`.
-
-**API:**
-
-```bash
-curl -s "https://pacific-051426.dataos.cloud/ct-sandbox/vulcan/sales-workforce-jk/livez" \
-  -H "Authorization: Bearer <token>"
-```
+Check Spark **driver** logs (not only workflow executor) if plan fails.
 
 ---
 
-## Comparison with practice-insights-v2
+## Comparison with practice-insights
 
-| Item | practice-insights | sales-workforce-jk |
-|------|-------------------|---------------------|
-| Deploy YAML | `vulcan/practice-insights-deploy.yaml` | `vulcan/sales-workforce-deploy.yaml` |
+| Item | practice-insights | vulcan-sales-workforce |
+|------|-------------------|------------------------|
+| Git host | Bitbucket | Bitbucket |
+| Repo URL | `bitbucket.org/tmdc/sgws-testing` | `bitbucket.org/tmdc/vulcan-sales-workforce` |
+| Secret | `ct-sandbox:bitbucket-cred-mr` | `ct-sandbox:bitbucket-cred-mr` |
+| baseDir | `sgws-testing/practice-insights-v2/vulcan` | `vulcan-sales-workforce/<product>/vulcan` |
 | Engine | `spark` | `spark` |
-| Dialect | `spark2` | `spark2` |
-| Compute | `ct-sandbox-compute` | `ct-sandbox-compute` |
 | Depot | `s3lhdepot` | `s3lhdepot` |
-| Data source | Nilus → raw tables | CSV seeds → `raw.*` |
 
 ---
 
@@ -132,8 +139,7 @@ curl -s "https://pacific-051426.dataos.cloud/ct-sandbox/vulcan/sales-workforce-j
 
 | Error | Action |
 |-------|--------|
+| Git sync auth failure | Confirm Bitbucket repo access + `bitbucket-cred-mr` |
+| Plan: config not found | Verify `baseDir` matches path under repo root on plan pod |
 | `unknown type 'vulcan'` | Upgrade dataos-ctl or admin applies |
-| `403 Forbidden` | Admin: grant apply/get on vulcan in ct-sandbox |
 | Duplicate model keys locally | `make reset-state` |
-| Plan: config not found | Verify `baseDir` matches repo path; compare with practice-insights plan pod |
-| Spark run failures | Check `*-run-execute` logs + Spark UI |

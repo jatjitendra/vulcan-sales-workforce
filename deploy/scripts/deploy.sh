@@ -6,7 +6,7 @@ WORKSPACE="${WORKSPACE:-ct-sandbox}"
 CONTEXT="${DATAOS_CONTEXT:-pacific-051426}"
 VULCAN_PRODUCT="${VULCAN_PRODUCT:-retail-inventory-jk}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-MANIFEST="$ROOT/${VULCAN_PRODUCT}/vulcan/${VULCAN_PRODUCT}-deploy.yaml"
+MANIFEST="$ROOT/vulcan-sales-workforce/${VULCAN_PRODUCT}/vulcan/${VULCAN_PRODUCT}-deploy.yaml"
 
 echo "Deploying from: $ROOT"
 echo "Product: $VULCAN_PRODUCT"
@@ -23,11 +23,8 @@ export PATH="${HOME}/.dataos/v2/bin:${PATH}"
 dataos-ctl context select --name "$CONTEXT"
 dataos-ctl tenant select -n "$WORKSPACE" 2>/dev/null || true
 
-if [[ -f "$ROOT/deploy/resources/git_sync_secret.yml" ]]; then
-  echo "Applying git sync secret..."
-  dataos-ctl resource apply -f "$ROOT/deploy/resources/git_sync_secret.yml" 2>/dev/null || \
-    dataos-ctl resource apply -f "$ROOT/deploy/resources/git_sync_secret.yml" -w "$WORKSPACE"
-fi
+# Bitbucket: use platform secret ct-sandbox:bitbucket-cred-mr (same as practice-insights).
+# No git secret apply needed unless admin provisioned a custom secret.
 
 RESOURCE_NAME="$(grep -E '^name:' "$MANIFEST" | head -1 | awk '{print $2}')"
 
