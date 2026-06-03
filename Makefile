@@ -22,7 +22,7 @@ VULCAN_CLI_FLAGS ?= --ignore-warnings
 # Local CLI uses Postgres config; cloud deploy uses config.yaml (Spark + s3lhdepot).
 # Switch product: make local-check VULCAN_PRODUCT=retail-inventory-jk
 VULCAN_PRODUCT ?= retail-inventory-jk
-VULCAN_PROJECT_DIR ?= vulcan-sales-workforce/$(VULCAN_PRODUCT)/vulcan
+VULCAN_PROJECT_DIR ?= $(VULCAN_PRODUCT)/vulcan
 VULCAN_CONFIG_FILE ?= $(VULCAN_PROJECT_DIR)/config.local.yaml
 VULCAN_DEPLOY_MANIFEST ?= $(VULCAN_PROJECT_DIR)/$(VULCAN_PRODUCT)-deploy.yaml
 

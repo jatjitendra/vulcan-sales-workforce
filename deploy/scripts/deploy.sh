@@ -6,7 +6,7 @@ WORKSPACE="${WORKSPACE:-ct-sandbox}"
 CONTEXT="${DATAOS_CONTEXT:-pacific-051426}"
 VULCAN_PRODUCT="${VULCAN_PRODUCT:-retail-inventory-jk}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-MANIFEST="$ROOT/vulcan-sales-workforce/${VULCAN_PRODUCT}/vulcan/${VULCAN_PRODUCT}-deploy.yaml"
+MANIFEST="$ROOT/${VULCAN_PRODUCT}/vulcan/${VULCAN_PRODUCT}-deploy.yaml"
 
 echo "Deploying from: $ROOT"
 echo "Product: $VULCAN_PRODUCT"

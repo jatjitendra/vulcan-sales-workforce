@@ -1,14 +1,13 @@
 version: v1alpha
 type: vulcan
-# Short name required: K8s SparkApplication labels must be <= 63 chars
-name: retail-inv-jk
+name: sales-workforce-jk
 tags:
-  - retail-inventory
+  - sales-workforce
   - dataproduct
   - spark
   - iceberg
   - lakehouse
-description: Retail inventory data product — staging seeds to inventory marts on s3lhdepot.
+description: Sales analytics data product — CSV seeds to analytics marts on s3lhdepot.
 owner: jitendrakumartmdcio
 tenant: ct-sandbox
 spec:
@@ -16,7 +15,7 @@ spec:
   compute: ct-sandbox-compute
   engine: spark
   repo:
-    baseDir: vulcan-sales-workforce/retail-inventory-jk/vulcan
+    baseDir: sales-workforce-jk/vulcan
     secret: ct-sandbox:github-token
     syncFlags:
       - "--ref=main"
@@ -29,7 +28,7 @@ spec:
     logLevel: INFO
     schedule:
       crons:
-        - "0 7 * * *"
+        - "0 6 * * *"
       endOn: "2027-01-01T00:00:00-00:00"
       timezone: "UTC"
       concurrencyPolicy: Forbid

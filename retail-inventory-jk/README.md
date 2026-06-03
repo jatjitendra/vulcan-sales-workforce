@@ -31,7 +31,7 @@ make local-check VULCAN_PRODUCT=retail-inventory-jk
 ## Deploy to Pacific
 
 ```bash
-dataos-ctl resource apply -f vulcan-sales-workforce/retail-inventory-jk/vulcan/retail-inventory-jk-deploy.yaml
+dataos-ctl resource apply -f retail-inventory-jk/vulcan/retail-inventory-jk-deploy.yaml
 ```
 
 Or:
