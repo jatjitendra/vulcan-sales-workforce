@@ -4,7 +4,7 @@ alignment: consumer_aligned
 
 vde: false
 
-name: retail-inventory-jk
+name: retail-inv-jk
 display_name: Retail & Inventory Analytics
 tenant: ct-sandbox
 description: |

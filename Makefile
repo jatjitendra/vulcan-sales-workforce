@@ -95,7 +95,7 @@ deploy-yaml: ensure-infra ## Generate starter sales-workforce-deploy.yaml via vu
 	@mkdir -p $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs && chmod 777 $(VULCAN_PROJECT_DIR)/.cache $(VULCAN_PROJECT_DIR)/.logs 2>/dev/null || true
 	$(MAKE) vulcan-cli CMD='create_deploy_yaml -o .cache/sales-workforce-deploy.generated.yaml --overwrite' VULCAN_CONFIG_FILE=$(VULCAN_PROJECT_DIR)/config.yaml
 	@echo "Generated: $(VULCAN_PROJECT_DIR)/.cache/sales-workforce-deploy.generated.yaml"
-	@echo "Merge Spark/driver/executor fields into $(VULCAN_PROJECT_DIR)/sales-workforce-deploy.yaml if needed."
+	@echo "Merge Spark/driver/executor fields into $(VULCAN_DEPLOY_MANIFEST) if needed."
 
 local-infra: network ## Start statestore + warehouse only (skip MinIO/transpiler if they fail)
 	docker compose -p vulcan-statestore -f docker/docker-compose.infra.yml up -d statestore

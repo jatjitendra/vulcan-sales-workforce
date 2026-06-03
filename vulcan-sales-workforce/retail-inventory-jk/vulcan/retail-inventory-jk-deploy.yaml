@@ -1,6 +1,7 @@
 version: v1alpha
 type: vulcan
-name: retail-inventory-jk
+# Short name required: K8s SparkApplication labels must be <= 63 chars
+name: retail-inv-jk
 tags:
   - retail-inventory
   - dataproduct

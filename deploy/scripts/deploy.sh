@@ -29,9 +29,12 @@ if [[ -f "$ROOT/deploy/resources/git_sync_secret.yml" ]]; then
     dataos-ctl resource apply -f "$ROOT/deploy/resources/git_sync_secret.yml" -w "$WORKSPACE"
 fi
 
+RESOURCE_NAME="$(grep -E '^name:' "$MANIFEST" | head -1 | awk '{print $2}')"
+
 echo "Applying Vulcan resource (Step 4)..."
+echo "Pacific resource name: $RESOURCE_NAME"
 dataos-ctl resource apply -f "$MANIFEST"
 
 echo "Done. Verify (Step 5):"
-dataos-ctl resource get -t vulcan -n "$VULCAN_PRODUCT" 2>/dev/null || \
+dataos-ctl resource get -t vulcan -n "$RESOURCE_NAME" 2>/dev/null || \
   echo "  (403? ask admin or check Pacific UI Runtime tab for plan/run/api)"

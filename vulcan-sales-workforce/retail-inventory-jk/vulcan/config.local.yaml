@@ -1,36 +1,27 @@
-# Local Vulcan — Postgres warehouse + statestore (Docker via Makefile).
-# Pacific cloud uses config.yaml (Spark + dataos://s3lhdepot).
+# Local Docker config — Postgres warehouse + statestore (not used on Pacific cloud)
+# Mounted by `make vulcan-cli` / `make local-check` targets
 
-discoverable: false
-version: 0.1.0
-alignment: consumer_aligned
-
-vde: false
-
-name: retail-inventory-jk
-display_name: Retail & Inventory (local)
+name: retail-inv-jk
 tenant: ct-sandbox
-description: Local Postgres stack for Retail & Inventory development and validation.
+description: "Retail inventory data product — local Postgres stack for development."
 
 tags:
   - retail-inventory
-  - vulcan
-  - local
   - postgres
 
-terms:
-  - glossary.data_product
+metadata:
+  domain: retail_operations
+  use_cases:
+    - Local development and validation
+  limitations:
+    - Uses mock seed data
+    - Local Docker Postgres only
 
-domain: retail_operations
-
-analytics:
-  enabled: false
-
-model_defaults:
-  dialect: postgres
-  start: '2025-01-01'
-  cron: '@daily'
-  owner: jitendrakumartmdcio
+users:
+  - username: jitendrakumartmdcio
+    github_username: jatjitendra
+    email: jitendranitp24@gmail.com
+    type: OWNER
 
 gateways:
   warehouse:
@@ -52,21 +43,5 @@ gateways:
 
 default_gateway: warehouse
 
-notification_targets:
-  - type: console
-    notify_on:
-      - apply_start
-      - apply_end
-      - apply_failure
-      - run_start
-      - run_end
-      - run_failure
-      - check_start
-      - check_end
-      - check_failure
-
-users:
-  - username: jitendrakumartmdcio
-    github_username: jatjitendra
-    email: jitendranitp24@gmail.com
-    type: OWNER
+model_defaults:
+  dialect: postgres

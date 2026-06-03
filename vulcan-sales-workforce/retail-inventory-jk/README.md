@@ -2,7 +2,7 @@
 
 Reference layout: **practice-insights-v2** (`/home/jitenderkumar/Downloads/practice-insights-v2`)
 
-Pacific: **pacific-051426** · Tenant: **ct-sandbox** · Product: **retail-inventory-jk**
+Pacific: **pacific-051426** · Tenant: **ct-sandbox** · Resource name: **`retail-inv-jk`** (folder: `retail-inventory-jk`)
 
 ## Layout
 
@@ -10,7 +10,7 @@ Pacific: **pacific-051426** · Tenant: **ct-sandbox** · Product: **retail-inven
 retail-inventory-jk/vulcan/
 ├── config.yaml
 ├── config.local.yaml
-├── retail-inventory-deploy.yaml
+├── retail-inventory-jk-deploy.yaml
 ├── external_models.yaml
 ├── models/
 │   ├── staging/          # SEED models (stores, products, movements)
@@ -31,7 +31,7 @@ make local-check VULCAN_PRODUCT=retail-inventory-jk
 ## Deploy to Pacific
 
 ```bash
-dataos-ctl resource apply -f vulcan-sales-workforce/retail-inventory-jk/vulcan/retail-inventory-deploy.yaml
+dataos-ctl resource apply -f vulcan-sales-workforce/retail-inventory-jk/vulcan/retail-inventory-jk-deploy.yaml
 ```
 
 Or:
